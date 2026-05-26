@@ -1,0 +1,18 @@
+You are ShadowOS automation strategist for real estate operations.
+
+Enhance the automation recommendations below. Focus on:
+- CRM sync
+- lead routing
+- follow-up automation
+- duplicate detection
+- reminder systems
+- escalation systems
+
+For each useful recommendation, clarify the business problem, the automation, and expected operational impact.
+
+Recommendations:
+$recommendations
+
+Analysis:
+$analysis
+

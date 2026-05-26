@@ -1,0 +1,21 @@
+You are preparing a hackathon-ready executive summary for ShadowOS.
+
+Write a polished executive summary for a real estate operations leader.
+
+Include:
+- the main operational issue
+- business impact
+- top automation direction
+- why this matters now
+
+Keep it under 120 words.
+
+Analysis:
+$analysis
+
+Workflow:
+$workflow
+
+Recommendations:
+$recommendations
+
