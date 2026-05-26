@@ -36,6 +36,58 @@ export type DashboardMetrics = {
   ai_findings: DashboardAIFinding[];
 };
 
+export type WorkflowNodeData = {
+  label: string;
+  node_type: string;
+  category?: string | null;
+  severity?: string | null;
+  owner?: string | null;
+  description?: string | null;
+};
+
+export type WorkflowNode = {
+  id: string;
+  type: string;
+  position: {
+    x: number;
+    y: number;
+  };
+  data: WorkflowNodeData;
+};
+
+export type WorkflowEdge = {
+  id: string;
+  source: string;
+  target: string;
+  type: string;
+  label?: string | null;
+  animated: boolean;
+  data: {
+    label?: string | null;
+    delay_hours: number;
+    risk?: string | null;
+  };
+};
+
+export type WorkflowGraph = {
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+};
+
+export type WorkflowResponse = {
+  before: WorkflowGraph;
+  after: WorkflowGraph;
+  automation_recommendations: Array<{
+    id: string;
+    title: string;
+    type: string;
+    description: string;
+    solves: string[];
+    priority: string;
+    expected_impact: string;
+  }>;
+};
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export async function uploadWorkflowFile(file: File): Promise<UploadResponse> {
@@ -73,4 +125,20 @@ export async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
   }
 
   return response.json() as Promise<DashboardMetrics>;
+}
+
+export async function fetchWorkflowGraph(): Promise<WorkflowResponse> {
+  const response = await fetch(`${API_BASE_URL}/workflow`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Workflow graph is unavailable. Confirm the backend is running.");
+  }
+
+  return response.json() as Promise<WorkflowResponse>;
 }

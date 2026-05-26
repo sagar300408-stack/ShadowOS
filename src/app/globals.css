@@ -48,3 +48,47 @@ input:focus-visible {
     transform: translateY(0);
   }
 }
+
+.react-flow {
+  --xy-node-boxshadow-default: none;
+  --xy-edge-stroke-default: rgba(148, 163, 184, 0.38);
+  --xy-controls-button-background-color-default: rgba(15, 23, 42, 0.86);
+  --xy-controls-button-color-default: #cffafe;
+  --xy-controls-button-border-color-default: rgba(255, 255, 255, 0.12);
+}
+
+.react-flow__handle {
+  opacity: 0;
+}
+
+.react-flow__controls {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+
+.workflow-node {
+  animation: workflow-node-rise 600ms ease-out both, workflow-node-pulse 3.2s ease-in-out infinite;
+}
+
+@keyframes workflow-node-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes workflow-node-pulse {
+  0%,
+  100% {
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+  }
+
+  50% {
+    box-shadow: 0 18px 54px rgba(34, 211, 238, 0.16);
+  }
+}

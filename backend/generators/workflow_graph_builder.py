@@ -34,7 +34,7 @@ class WorkflowGraphBuilder:
             ("whatsapp", "WhatsApp", "channel", "Inbound buyer messages remain the starting point."),
             ("ai_extraction", "AI Extraction", "automation", "Extract buyer intent, budget, location, and urgency."),
             ("crm_sync", "CRM Sync", "automation", "Create or update a single CRM record automatically."),
-            ("automated_followup", "Automated Follow-Up", "automation", "Send contextual follow-ups and reminders."),
+            ("automated_followup", "Auto Follow-Up", "automation", "Send contextual follow-ups and reminders."),
             ("lead_recovery", "Lead Recovery", "outcome", "Recover stalled leads with faster response loops."),
         ]
         return self._build_linear_graph(labels, animated=True)

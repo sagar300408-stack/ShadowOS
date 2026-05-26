@@ -23,7 +23,7 @@ class WorkflowGenerationService:
 
         return WorkflowGenerationResponse(
             before=self.graph_builder.build_before_graph(findings),
-            after=self.graph_builder.build_after_graph(recommendations),
+            after=self.graph_builder.build_after_graph(recommendations if findings else None),
             automation_recommendations=recommendations,
         )
 
