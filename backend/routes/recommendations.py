@@ -17,39 +17,47 @@ async def get_recommendations() -> RecommendationsResponse:
     return RecommendationsResponse(
         automation_opportunities=[
             AutomationOpportunity(
-                title="Automated lead routing",
-                current_problem="Leads are manually assigned, causing slow first response times.",
-                proposed_automation="Route leads automatically by property location, broker availability, and lead value.",
+                title="Lead Follow-Up Agent",
+                current_problem="High-intent leads decay when manual follow-ups are delayed by up to 12 hours.",
+                proposed_automation="Trigger scheduled WhatsApp reminders and initial replies when high-value leads sit idle.",
                 priority=Priority.high,
-                estimated_hours_saved_per_week=14.0,
+                estimated_hours_saved_per_week=18.0,
+                implementation_effort="low",
+            ),
+            AutomationOpportunity(
+                title="CRM Sync Agent",
+                current_problem="Customer profiles and transaction logs are scattered across WhatsApp, Excel, and local files.",
+                proposed_automation="Unify inbound channel events and broker data in real-time, removing manual double entry.",
+                priority=Priority.high,
+                estimated_hours_saved_per_week=14.5,
                 implementation_effort="medium",
             ),
             AutomationOpportunity(
-                title="Document follow-up assistant",
-                current_problem="Operations teams repeatedly chase buyers for missing documents.",
-                proposed_automation="Send scheduled document reminders and escalate incomplete cases.",
+                title="Lead Qualification Agent",
+                current_problem="Brokers waste hours manually checking budget, location, and intent of incoming prospects.",
+                proposed_automation="Automatically profile and score leads via instant WhatsApp qualification chats.",
                 priority=Priority.medium,
-                estimated_hours_saved_per_week=9.5,
-                implementation_effort="low",
+                estimated_hours_saved_per_week=10.0,
+                implementation_effort="medium",
             ),
         ],
         risk_alerts=[
             RiskAlert(
-                title="Revenue leakage from delayed responses",
-                description="High-intent leads are at risk when first response exceeds 6 hours.",
+                title="Revenue leakage from delayed response loops",
+                description="Delayed manual responses lead to 68% of total pipeline conversion loss.",
                 severity=Priority.high,
             )
         ],
         efficiency_improvements=[
             EfficiencyImprovement(
-                area="Lead response",
-                expected_improvement_percent=61.0,
-                explanation="Automation reduces assignment and first-contact delay.",
+                area="Lead response time",
+                expected_improvement_percent=99.0,
+                explanation="Automation reduces response delays from 6 hours to under 3 minutes.",
             ),
             EfficiencyImprovement(
-                area="Back-office coordination",
-                expected_improvement_percent=38.0,
-                explanation="Fewer manual handoffs are needed for document follow-up.",
+                area="Back-office manual overhead",
+                expected_improvement_percent=62.0,
+                explanation="Real-time syncing and automated triggers cut chasing efforts by 18 hours/week.",
             ),
         ],
     )

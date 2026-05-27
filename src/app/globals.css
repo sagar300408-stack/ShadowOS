@@ -92,3 +92,31 @@ input:focus-visible {
     box-shadow: 0 18px 54px rgba(34, 211, 238, 0.16);
   }
 }
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-20px);
+  }
+  50% {
+    transform: translateY(380px);
+  }
+  100% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes scan-laser {
+  0% {
+    top: 0%;
+  }
+  50% {
+    top: 100%;
+  }
+  100% {
+    top: 0%;
+  }
+}
+
+.react-flow__node {
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}

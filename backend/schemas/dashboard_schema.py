@@ -20,5 +20,6 @@ class DashboardMetricsResponse(BaseModel):
     time_waste_estimate: float = Field(ge=0, description="Estimated wasted hours per week.")
     repeated_task_count: int = Field(ge=0)
     workflow_fragmentation_score: float = Field(ge=0, le=100)
+    automation_potential: float = Field(default=85.0, ge=0, le=100)
     automation_opportunities: list[DashboardAutomationOpportunity] = Field(default_factory=list)
     ai_findings: list[DashboardAIFinding] = Field(default_factory=list)

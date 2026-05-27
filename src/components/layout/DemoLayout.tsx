@@ -1,0 +1,282 @@
+"use client";
+
+import { useEffect, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  Activity,
+  BrainCircuit,
+  ChevronRight,
+  DatabaseZap,
+  DollarSign,
+  FolderOpen,
+  Lock,
+  Network,
+  Radar,
+  Terminal,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
+
+interface Step {
+  title: string;
+  subtitle: string;
+  path: string;
+  icon: any;
+}
+
+const STEPS: Step[] = [
+  {
+    title: "Data Capture",
+    subtitle: "Upload operational signals",
+    path: "/upload",
+    icon: FolderOpen,
+  },
+  {
+    title: "AI Verdict",
+    subtitle: "Exposure & diagnostics",
+    path: "/dashboard",
+    icon: BrainCircuit,
+  },
+  {
+    title: "Workflow Map",
+    subtitle: "Transformation simulator",
+    path: "/workflow",
+    icon: Network,
+  },
+  {
+    title: "Deploy Sandbox",
+    subtitle: "System deployment",
+    path: "/deploy",
+    icon: Terminal,
+  },
+  {
+    title: "Executive Impact",
+    subtitle: "Business outcomes",
+    path: "/impact",
+    icon: TrendingUp,
+  },
+];
+
+interface DemoLayoutProps {
+  children: ReactNode;
+}
+
+export function DemoLayout({ children }: DemoLayoutProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [time, setTime] = useState("");
+
+  // Determine active step index
+  const activeIndex = STEPS.findIndex((step) => pathname?.startsWith(step.path)) ?? 0;
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setTime(
+        now.toLocaleTimeString("en-US", {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+      );
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Floating guide info
+  const getWalkthroughInfo = () => {
+    switch (activeIndex) {
+      case 0:
+        return {
+          text: "Upload a CSV/Excel file representing real estate logs, then trigger the AI telemetry scan.",
+          nextText: "Review AI Telemetry",
+          nextPath: "/dashboard",
+        };
+      case 1:
+        return {
+          text: "Inspect the primary operational leakage (₹12,40,000 exposure). Review findings and the Top 3 recommended automations.",
+          nextText: "Visualize Workflow Transformation",
+          nextPath: "/workflow",
+        };
+      case 2:
+        return {
+          text: "Compare the manual (Before) and automated (After) paths. Run the Transition Simulator to watch the node morphs.",
+          nextText: "Proceed to System Deployment",
+          nextPath: "/deploy",
+        };
+      case 3:
+        return {
+          text: "Trigger the terminal simulation to deploy automated lead follow-up, CRM sync, and qualification agents.",
+          nextText: "Unlock Executive Impact Summary",
+          nextPath: "/impact",
+        };
+      case 4:
+        return {
+          text: "Review the finalized business value metrics (₹8,20,000 recovery) and OpenAI Codex contributions.",
+          nextText: "Reset Walkthrough",
+          nextPath: "/upload",
+        };
+      default:
+        return null;
+    }
+  };
+
+  const guide = getWalkthroughInfo();
+
+  return (
+    <div className="relative min-h-screen bg-[#02050d] text-slate-100 font-sans selection:bg-cyan-500/30">
+      {/* Background Grids and Accents */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(6,182,212,0.12),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(16,185,129,0.08),transparent_32%),linear-gradient(to_bottom,rgba(15,23,42,0.98),rgba(2,6,23,0.99))]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.045)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+
+      {/* Outer Console border wrap */}
+      <div className="relative flex flex-col min-h-screen">
+        {/* TOP STATUS BAR */}
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-cyan-500/15 bg-slate-950/70 px-4 md:px-6 backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            <div className="relative grid size-9 place-items-center border border-cyan-500/40 bg-cyan-950/40 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.25)]">
+              <Radar className="size-4 animate-pulse" />
+              <span className="absolute -top-0.5 -right-0.5 size-1.5 bg-emerald-400 rounded-full" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold uppercase tracking-[0.25em] text-white">ShadowOS</span>
+                <span className="border border-cyan-500/30 bg-cyan-950/50 px-1.5 py-0.5 text-[9px] font-mono text-cyan-300 rounded uppercase">
+                  v1.2.0-beta
+                </span>
+              </div>
+              <p className="text-[10px] uppercase tracking-widest text-slate-400 hidden sm:block">
+                AI Operational Intelligence System
+              </p>
+            </div>
+          </div>
+
+          {/* TELEMETRY DECK */}
+          <div className="flex items-center gap-4 text-xs font-mono md:gap-6">
+            <div className="hidden lg:flex items-center gap-2 border-r border-slate-800 pr-4">
+              <Activity className="size-3.5 text-cyan-400 animate-pulse" />
+              <span className="text-slate-400 uppercase text-[10px] tracking-wider">Telemetry:</span>
+              <span className="text-emerald-400 uppercase text-[10px] font-bold">CONNECTED</span>
+            </div>
+            <div className="hidden sm:flex items-center gap-2 border-r border-slate-800 pr-4">
+              <DatabaseZap className="size-3.5 text-yellow-500" />
+              <span className="text-slate-400 uppercase text-[10px] tracking-wider">Codex Engine:</span>
+              <span className="text-cyan-400 uppercase text-[10px] font-bold">ARMED</span>
+            </div>
+            <div className="flex items-center gap-2 bg-slate-900/60 px-3 py-1.5 border border-cyan-500/10">
+              <span className="size-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <span className="font-semibold text-cyan-200 tabular-nums tracking-wider text-[11px]">{time || "00:00:00"}</span>
+            </div>
+          </div>
+        </header>
+
+        {/* CONTAINER SHELL */}
+        <div className="flex flex-1 flex-col md:flex-row min-h-0">
+          {/* SIDEBAR NAVIGATION */}
+          <aside className="w-full md:w-64 shrink-0 border-r border-cyan-500/10 bg-slate-950/30 p-4 md:p-6 flex flex-col justify-between backdrop-blur-sm">
+            <div className="space-y-6">
+              <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 border-b border-slate-800 pb-2">
+                Demo Pipeline Sequence
+              </div>
+              <nav className="space-y-2">
+                {STEPS.map((step, index) => {
+                  const Icon = step.icon;
+                  const isActive = index === activeIndex;
+                  const isCompleted = index < activeIndex;
+
+                  let stepColorClass = "text-slate-500 border-slate-900 bg-transparent";
+                  if (isActive) {
+                    stepColorClass = "border-cyan-500/50 bg-cyan-950/30 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.06)]";
+                  } else if (isCompleted) {
+                    stepColorClass = "border-emerald-500/20 bg-emerald-950/10 text-emerald-400";
+                  }
+
+                  return (
+                    <Link
+                      key={step.path}
+                      href={step.path}
+                      className={`group flex items-center gap-3 border p-3 transition-all hover:bg-slate-900/50 ${stepColorClass}`}
+                    >
+                      <div
+                        className={`grid size-8 place-items-center border text-xs transition-colors ${
+                          isActive
+                            ? "border-cyan-400 bg-cyan-950/80 text-cyan-300"
+                            : isCompleted
+                            ? "border-emerald-500/30 bg-emerald-950/80 text-emerald-300"
+                            : "border-slate-800 bg-slate-900/80 text-slate-500 group-hover:border-slate-700"
+                        }`}
+                      >
+                        {isCompleted ? "✓" : `0${index + 1}`}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`text-xs font-semibold uppercase tracking-wider ${
+                              isActive ? "text-white" : isCompleted ? "text-slate-300" : "text-slate-500 group-hover:text-slate-400"
+                            }`}
+                          >
+                            {step.title}
+                          </span>
+                          {!isActive && !isCompleted && <Lock className="size-3 text-slate-600" />}
+                        </div>
+                        <p className="text-[10px] text-slate-400 truncate tracking-wide">{step.subtitle}</p>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Subtle Codex Badge */}
+            <div className="mt-8 border border-cyan-500/10 bg-cyan-950/10 p-3 text-center hidden md:block">
+              <p className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">
+                Codex Orchestrated
+              </p>
+              <div className="mt-1 flex items-center justify-center gap-1.5 text-xs font-bold text-cyan-300">
+                <BrainCircuit className="size-3.5 text-cyan-400 animate-pulse" />
+                <span>OPENAI CODEX</span>
+              </div>
+            </div>
+          </aside>
+
+          {/* MAIN PAGE VIEWPORT */}
+          <main className="flex-1 min-w-0 overflow-y-auto relative p-4 md:p-6 lg:p-8 pb-24 md:pb-28">
+            {children}
+          </main>
+        </div>
+
+        {/* BOTTOM WALKTHROUGH ACTION BAR */}
+        {guide && (
+          <footer className="fixed bottom-0 left-0 right-0 z-40 border-t border-cyan-500/20 bg-slate-950/90 px-4 py-3 md:px-6 md:py-4 backdrop-blur-md shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
+            <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-2.5">
+                <div className="mt-1 shrink-0">
+                  <span className="relative flex size-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full size-2.5 bg-cyan-500"></span>
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
+                  <span className="font-semibold text-cyan-300 font-mono uppercase mr-1">Demo Guide:</span>
+                  {guide.text}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push(guide.nextPath)}
+                className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 text-xs tracking-wider uppercase transition shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_20px_rgba(6,182,212,0.5)] border border-cyan-400/40 rounded-none cursor-pointer"
+              >
+                <span>{guide.nextText}</span>
+                <ChevronRight className="size-3.5" />
+              </button>
+            </div>
+          </footer>
+        )}
+      </div>
+    </div>
+  );
+}

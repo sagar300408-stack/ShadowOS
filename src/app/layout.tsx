@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "reactflow/dist/style.css";
 import "./globals.css";
+import { DemoLayout } from "@/components/layout/DemoLayout";
 
 export const metadata: Metadata = {
-  title: "ShadowOS",
+  title: "ShadowOS - AI Operational Intelligence System",
   description: "AI operational intelligence for real estate workflows.",
 };
 
@@ -15,7 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="antialiased">
+        <DemoLayout>{children}</DemoLayout>
+      </body>
     </html>
   );
 }
+
