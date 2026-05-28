@@ -85,7 +85,7 @@ export function WorkflowVisualization() {
   const beforeFlow = useMemo(() => buildReactFlowGraph(workflow?.before, "before"), [workflow]);
   const afterFlow = useMemo(() => buildReactFlowGraph(workflow?.after, "after"), [workflow]);
 
-  // Simulated Morphing Graph
+  // Simulated Morphing Graph (4 stages, 500px canvas height)
   const simulatorFlow = useMemo(() => {
     if (!workflow) return { nodes: [], edges: [] };
     
@@ -99,73 +99,62 @@ export function WorkflowVisualization() {
     const nodes = beforeGraph.nodes.map((node, index) => {
       const afterNode = afterGraph.nodes[index] || node;
       
-      // Node 0: Lead Arrives
+      // Node 0: WhatsApp -> AI Extraction
       if (index === 0) {
+        const isMorphed = simProgress >= 25;
         return {
-          ...node,
+          ...(isMorphed ? afterNode : node),
+          position: { x: 0, y: isMorphed ? 0 : 0 },
           data: {
-            ...node.data,
-            active: simProgress >= 20,
+            ...(isMorphed ? afterNode.data : node.data),
+            active: simProgress >= 25,
+            transforming: simProgress < 25 && simState === "running",
+            label: isMorphed ? afterNode.data.label : node.data.label
           }
         };
       }
       
-      // Node 1: WhatsApp -> AI Extraction
+      // Node 1: Excel -> CRM Sync
       if (index === 1) {
-        const isMorphed = simProgress >= 40;
+        const isMorphed = simProgress >= 50;
         return {
           ...(isMorphed ? afterNode : node),
-          position: { x: 0, y: isMorphed ? 110 : 118 },
+          position: { x: 0, y: isMorphed ? 135 : 135 },
           data: {
             ...(isMorphed ? afterNode.data : node.data),
-            active: simProgress >= 40,
-            transforming: simProgress === 20,
-            label: simProgress === 20 ? "Extracting..." : (isMorphed ? afterNode.data.label : node.data.label)
+            active: simProgress >= 50,
+            transforming: simProgress === 25,
+            label: simProgress === 25 ? "Syncing..." : (isMorphed ? afterNode.data.label : node.data.label)
           }
         };
       }
       
-      // Node 2: Excel -> CRM Sync
+      // Node 2: Manual Follow-Up -> Automated Follow-Up
       if (index === 2) {
-        const isMorphed = simProgress >= 60;
+        const isMorphed = simProgress >= 75;
         return {
           ...(isMorphed ? afterNode : node),
-          position: { x: 0, y: isMorphed ? 220 : 236 },
+          position: { x: 0, y: isMorphed ? 270 : 270 },
           data: {
             ...(isMorphed ? afterNode.data : node.data),
-            active: simProgress >= 60,
-            transforming: simProgress === 40,
-            label: simProgress === 40 ? "Syncing..." : (isMorphed ? afterNode.data.label : node.data.label)
+            active: simProgress >= 75,
+            transforming: simProgress === 50,
+            label: simProgress === 50 ? "Automating..." : (isMorphed ? afterNode.data.label : node.data.label)
           }
         };
       }
       
-      // Node 3: Manual Follow-Up -> Automated Follow-Up
+      // Node 3: Lost Lead -> Lead Recovered
       if (index === 3) {
-        const isMorphed = simProgress >= 80;
-        return {
-          ...(isMorphed ? afterNode : node),
-          position: { x: 0, y: isMorphed ? 330 : 354 },
-          data: {
-            ...(isMorphed ? afterNode.data : node.data),
-            active: simProgress >= 80,
-            transforming: simProgress === 60,
-            label: simProgress === 60 ? "Automating..." : (isMorphed ? afterNode.data.label : node.data.label)
-          }
-        };
-      }
-      
-      // Node 4: Lead Lost -> Lead Recovered
-      if (index === 4) {
         const isMorphed = simProgress >= 100;
         return {
           ...(isMorphed ? afterNode : node),
-          position: { x: 0, y: isMorphed ? 440 : 472 },
+          position: { x: 0, y: isMorphed ? 405 : 405 },
           data: {
             ...(isMorphed ? afterNode.data : node.data),
             active: simProgress >= 100,
-            transforming: simProgress === 80,
-            label: simProgress === 80 ? "Recovering..." : (isMorphed ? afterNode.data.label : node.data.label)
+            transforming: simProgress === 75,
+            label: simProgress === 75 ? "Recovering..." : (isMorphed ? afterNode.data.label : node.data.label)
           }
         };
       }
@@ -175,31 +164,24 @@ export function WorkflowVisualization() {
 
     const edges = beforeGraph.edges.map((edge, index) => {
       let stroke = "#f43f5e";
-      let strokeWidth = 2.2;
-      let filter = "drop-shadow(0 0 8px rgba(244,63,94,0.25))";
+      let filter = "drop-shadow(0 0 4px rgba(244,63,94,0.15))";
       
-      // Edge 0: lead_arrives -> whatsapp/ai_extraction
-      if (index === 0 && simProgress >= 20) {
-        stroke = "#10b981";
-        filter = "drop-shadow(0 0 10px rgba(16,185,129,0.6))";
+      // Edge 0: index 0 -> index 1
+      if (index === 0 && simProgress >= 25) {
+        stroke = simProgress === 25 ? "#eab308" : "#10b981";
+        filter = simProgress === 25 ? "drop-shadow(0 0 6px rgba(234,179,8,0.4))" : "drop-shadow(0 0 8px rgba(16,185,129,0.5))";
       }
       
-      // Edge 1: whatsapp/ai_extraction -> excel/crm_sync
-      if (index === 1 && simProgress >= 40) {
-        stroke = simProgress === 40 ? "#eab308" : "#10b981";
-        filter = simProgress === 40 ? "drop-shadow(0 0 10px rgba(234,179,8,0.6))" : "drop-shadow(0 0 10px rgba(16,185,129,0.6))";
+      // Edge 1: index 1 -> index 2
+      if (index === 1 && simProgress >= 50) {
+        stroke = simProgress === 50 ? "#eab308" : "#10b981";
+        filter = simProgress === 50 ? "drop-shadow(0 0 6px rgba(234,179,8,0.4))" : "drop-shadow(0 0 8px rgba(16,185,129,0.5))";
       }
       
-      // Edge 2: excel/crm_sync -> manual_followup/automated_followup
-      if (index === 2 && simProgress >= 60) {
-        stroke = simProgress === 60 ? "#eab308" : "#10b981";
-        filter = simProgress === 60 ? "drop-shadow(0 0 10px rgba(234,179,8,0.6))" : "drop-shadow(0 0 10px rgba(16,185,129,0.6))";
-      }
-      
-      // Edge 3: manual_followup/automated_followup -> lead_lost/lead_recovered
-      if (index === 3 && simProgress >= 80) {
-        stroke = simProgress === 80 ? "#eab308" : "#10b981";
-        filter = simProgress === 80 ? "drop-shadow(0 0 10px rgba(234,179,8,0.6))" : "drop-shadow(0 0 10px rgba(16,185,129,0.6))";
+      // Edge 2: index 2 -> index 3
+      if (index === 2 && simProgress >= 75) {
+        stroke = simProgress === 75 ? "#eab308" : "#10b981";
+        filter = simProgress === 75 ? "drop-shadow(0 0 6px rgba(234,179,8,0.4))" : "drop-shadow(0 0 8px rgba(16,185,129,0.5))";
       }
 
       return {
@@ -220,7 +202,7 @@ export function WorkflowVisualization() {
     });
 
     return { nodes, edges };
-  }, [workflow, simProgress]);
+  }, [workflow, simProgress, simState]);
 
   const runSimulation = () => {
     if (simState === "running") return;
@@ -231,22 +213,17 @@ export function WorkflowVisualization() {
 
     const steps = [
       {
-        progress: 20,
-        log: "Intercepting WhatsApp inbound events...",
-        graph: "before" as const,
-      },
-      {
-        progress: 40,
-        log: "Activating AI extraction models. Parsing lead data...",
+        progress: 25,
+        log: "Intercepting WhatsApp inbound events... Activating AI Extraction.",
         graph: "transitioning" as const,
       },
       {
-        progress: 60,
+        progress: 50,
         log: "Orchestrating CRM synchronization. Removing Excel dependency...",
         graph: "transitioning" as const,
       },
       {
-        progress: 80,
+        progress: 75,
         log: "Deploying Automated Follow-Up responders and SLA escalation engine...",
         graph: "after" as const,
       },
@@ -269,7 +246,7 @@ export function WorkflowVisualization() {
         clearInterval(interval);
         setSimState("completed");
       }
-    }, 1000);
+    }, 1200);
   };
 
   const resetSimulator = () => {
@@ -331,7 +308,7 @@ export function WorkflowVisualization() {
 
       {/* VIEWPORT AREA */}
       {activeTab === "split" ? (
-        // TAB 1: SPLIT SCREEN
+        // TAB 1: SPLIT SCREEN (concise Before and After side-by-side)
         <div className="grid gap-5 lg:grid-cols-2">
           <WorkflowPanel
             title="Before Workflow"
@@ -354,7 +331,7 @@ export function WorkflowVisualization() {
         // TAB 2: TRANSFORMATION SIMULATOR
         <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
           {/* SIMULATOR CANVAS PANEL */}
-          <section className="min-h-[520px] border border-cyan-500/15 bg-slate-950/40 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur relative flex flex-col justify-between">
+          <section className="min-h-[660px] border border-cyan-500/15 bg-slate-950/40 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur relative flex flex-col justify-between">
             <div className="absolute top-0 right-0 border-l border-b border-cyan-500/20 bg-slate-950/80 px-3 py-1 text-[9px] font-mono tracking-widest text-cyan-400 uppercase">
               Transform Sandbox
             </div>
@@ -363,17 +340,17 @@ export function WorkflowVisualization() {
               <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-400">
                 Visual Transformation Canvas
               </span>
-              <h3 className="text-lg font-bold text-white mt-0.5">
+              <h3 className="text-lg font-bold text-white mt-0.5 font-sans">
                 {simGraphState === "before" && "Phase 1: Fragmented Manual State"}
-                {simGraphState === "transitioning" && "Phase 2: Extracting & Syncing Data"}
+                {simGraphState === "transitioning" && "Phase 2: Data Extraction & Synchronization"}
                 {simGraphState === "after" && "Phase 3: Optimized Automated State"}
               </h3>
             </div>
 
-            <div className="h-[360px] border border-cyan-500/10 bg-[#040816]/70 relative">
+            <div className="h-[500px] border border-cyan-500/10 bg-[#040816]/70 relative">
               {/* Laser scan line overlay during execution */}
               {simState === "running" && (
-                <div className="absolute left-0 right-0 h-1 bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)] animate-[scan-laser_2s_ease-in-out_infinite] z-20 pointer-events-none" />
+                <div className="absolute left-0 right-0 h-0.5 bg-cyan-500/60 shadow-[0_0_12px_rgba(34,211,238,0.6)] animate-[scan-laser_2s_linear_infinite] z-20 pointer-events-none" />
               )}
               
               {status === "loading" ? (
@@ -398,7 +375,7 @@ export function WorkflowVisualization() {
                   connectionLineType={ConnectionLineType.SmoothStep}
                   proOptions={{ hideAttribution: true }}
                 >
-                  <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="rgba(6, 182, 212, 0.15)" />
+                  <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="rgba(6, 182, 212, 0.12)" />
                   <Controls showInteractive={false} position="bottom-right" />
                 </ReactFlow>
               )}
@@ -442,9 +419,9 @@ export function WorkflowVisualization() {
                 <span className="size-2 rounded-full bg-cyan-400 animate-pulse" />
               </div>
 
-              <div className="border border-cyan-500/10 bg-slate-950 p-4 h-96 overflow-y-auto space-y-3 font-mono text-xs select-none">
+              <div className="border border-cyan-500/10 bg-slate-950 p-4 h-[490px] overflow-y-auto space-y-3 font-mono text-xs select-none">
                 {simLogs.length === 0 ? (
-                  <p className="text-slate-500 italic text-center pt-32">
+                  <p className="text-slate-500 italic text-center pt-52">
                     Click 'Run Simulator' to trigger the automation sequence.
                   </p>
                 ) : (
@@ -467,11 +444,11 @@ export function WorkflowVisualization() {
             </div>
 
             {simState === "completed" && (
-              <div className="mt-4 border border-emerald-500/20 bg-emerald-950/20 p-3 text-xs flex items-center gap-3">
+              <div className="mt-4 border border-emerald-500/25 bg-emerald-950/20 p-3.5 text-xs flex items-center gap-3">
                 <CheckCircle2 className="size-5 text-emerald-400 shrink-0" />
                 <div className="text-slate-300">
                   <span className="font-bold text-emerald-400 uppercase mr-1">Success:</span>
-                  Workflow converted. Operational drag eliminated by 62%.
+                  Workflow transformation complete. Operational drag eliminated by 62%.
                 </div>
               </div>
             )}
@@ -493,21 +470,21 @@ type WorkflowPanelProps = {
 
 function WorkflowPanel({ title, subtitle, tone, nodes, edges, loading }: WorkflowPanelProps) {
   return (
-    <section className="min-h-[520px] border border-cyan-500/15 bg-slate-950/40 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.34)] backdrop-blur sm:p-5 flex flex-col justify-between">
+    <section className="min-h-[660px] border border-cyan-500/15 bg-slate-950/40 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.34)] backdrop-blur sm:p-5 flex flex-col justify-between">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className={`text-[10px] font-semibold uppercase tracking-[0.28em] ${tone === "before" ? "text-rose-400" : "text-emerald-400"}`}>
+          <p className={`text-[10px] font-semibold uppercase tracking-[0.28em] ${tone === "before" ? "text-rose-450" : "text-emerald-400"}`}>
             {tone === "before" ? "Fragmented Path" : "Recovered Path"}
           </p>
           <h2 className="mt-1 text-lg font-bold text-white uppercase tracking-wider">{title}</h2>
           <p className="mt-1 text-xs text-slate-400 leading-relaxed">{subtitle}</p>
         </div>
-        <div className={`grid size-9 shrink-0 place-items-center border ${tone === "before" ? "border-rose-500/30 bg-rose-950/40 text-rose-400" : "border-emerald-500/30 bg-emerald-950/40 text-emerald-400"}`}>
+        <div className={`grid size-9 shrink-0 place-items-center border ${tone === "before" ? "border-rose-500/20 bg-rose-950/30 text-rose-450" : "border-emerald-500/20 bg-emerald-950/30 text-emerald-400"}`}>
           {tone === "before" ? <AlertTriangle className="size-4.5" aria-hidden="true" /> : <Zap className="size-4.5" aria-hidden="true" />}
         </div>
       </div>
 
-      <div className="h-[360px] border border-cyan-500/10 bg-[#040816]/70">
+      <div className="h-[500px] border border-cyan-500/10 bg-[#040816]/70">
         {loading ? (
           <div className="grid h-full place-items-center">
             <div className="flex items-center gap-2 text-xs text-cyan-200">
@@ -530,7 +507,7 @@ function WorkflowPanel({ title, subtitle, tone, nodes, edges, loading }: Workflo
             connectionLineType={ConnectionLineType.SmoothStep}
             proOptions={{ hideAttribution: true }}
           >
-            <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="rgba(6, 182, 212, 0.15)" />
+            <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="rgba(6, 182, 212, 0.12)" />
             <Controls showInteractive={false} position="bottom-right" />
           </ReactFlow>
         )}
@@ -549,13 +526,13 @@ function ShadowWorkflowNode({ data }: NodeProps<FlowNodeData>) {
     <div
       className={`workflow-node min-w-[210px] border px-4 py-3 shadow-[0_18px_42px_rgba(0,0,0,0.32)] transition-all duration-500 ${
         transforming
-          ? "border-yellow-500/50 bg-yellow-950/30 text-yellow-100 shadow-[0_0_15px_rgba(234,179,8,0.25)] animate-pulse"
+          ? "border-yellow-500/40 bg-yellow-950/30 text-yellow-100 shadow-[0_0_15px_rgba(234,179,8,0.2)] animate-pulse"
           : active
-            ? "border-emerald-500/55 bg-emerald-950/40 text-emerald-50 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+            ? "border-emerald-500/55 bg-emerald-950/45 text-emerald-50 shadow-[0_0_15px_rgba(16,185,129,0.22)]"
             : after
-              ? "border-emerald-500/15 bg-emerald-950/10 text-emerald-400 opacity-60"
+              ? "border-emerald-500/15 bg-emerald-950/10 text-emerald-450 opacity-60"
               : risky
-                ? "border-rose-500/35 bg-rose-950/40 text-rose-50"
+                ? "border-rose-500/35 bg-rose-950/20 text-rose-200 shadow-[0_0_12px_rgba(244,63,94,0.05)]"
                 : "border-cyan-500/25 bg-cyan-950/40 text-cyan-50"
       }`}
       style={{ animationDelay: `${data.index * 120}ms` }}
@@ -563,30 +540,30 @@ function ShadowWorkflowNode({ data }: NodeProps<FlowNodeData>) {
       <div className="flex items-center gap-3">
         <div className={`grid size-9 shrink-0 place-items-center border transition-all duration-300 ${
           transforming
-            ? "border-yellow-500/40 bg-yellow-950 text-yellow-400"
+            ? "border-yellow-500/30 bg-yellow-950 text-yellow-450"
             : active
               ? "border-emerald-500/30 bg-emerald-950 text-emerald-400"
-              : "border-slate-800 bg-slate-900/60"
+              : "border-slate-800 bg-slate-900/60 text-slate-450"
         }`}>
           {transforming ? (
-            <RefreshCcw className="size-4 animate-spin text-yellow-400" />
+            <RefreshCcw className="size-4 animate-spin text-yellow-450" />
           ) : (
             <WorkflowNodeIcon label={data.label} nodeType={data.node_type} />
           )}
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <p className="text-sm font-bold text-white tracking-wide">{normalizeWorkflowLabel(data.label)}</p>
+            <p className="text-xs font-bold text-white tracking-wide">{data.label}</p>
             {data.node_type === "automation" && active && (
               <span className="border border-emerald-500/30 bg-emerald-950 px-1 py-0.5 text-[8px] font-bold text-emerald-400 font-mono rounded uppercase">
                 AI Agent
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[9px] uppercase tracking-[0.18em] text-slate-400 font-mono">{data.node_type.replace("_", " ")}</p>
+          <p className="mt-0.5 text-[9px] uppercase tracking-[0.18em] text-slate-500 font-mono">{data.node_type.replace("_", " ")}</p>
         </div>
       </div>
-      {data.description ? <p className="mt-2.5 text-[11px] leading-relaxed text-slate-300 border-t border-cyan-500/5 pt-2">{data.description}</p> : null}
+      {data.description ? <p className="mt-2.5 text-[11px] leading-relaxed text-slate-400 border-t border-cyan-500/5 pt-2">{data.description}</p> : null}
     </div>
   );
 }
@@ -603,14 +580,14 @@ function WorkflowNodeIcon({ label, nodeType }: { label: string; nodeType: string
   if (normalized.includes("extraction")) {
     return <Bot className="size-4" aria-hidden="true" />;
   }
-  if (normalized.includes("crm")) {
+  if (normalized.includes("crm") || normalized.includes("sync")) {
     return <RefreshCcw className="size-4" aria-hidden="true" />;
   }
   if (normalized.includes("recovery") || normalized.includes("recovered")) {
-    return <CheckCircle2 className="size-4 animate-pulse text-emerald-400" aria-hidden="true" />;
+    return <CheckCircle2 className="size-4 text-emerald-400" aria-hidden="true" />;
   }
   if (nodeType === "risk") {
-    return <AlertTriangle className="size-4 text-rose-400" aria-hidden="true" />;
+    return <AlertTriangle className="size-4 text-rose-450" aria-hidden="true" />;
   }
   return <Zap className="size-4" aria-hidden="true" />;
 }
@@ -625,38 +602,38 @@ function buildReactFlowGraph(graph: WorkflowGraph | undefined, phase: "before" |
     type: "shadowNode",
     position: {
       x: 0,
-      y: index * 118,
+      y: index * 135,
     },
     data: {
       ...node.data,
-      label: normalizeWorkflowLabel(node.data.label),
+      label: node.data.label,
       phase,
       index,
     },
   }));
 
-  const edges: Edge[] = graph.edges.map((edge) => ({
-    id: edge.id,
-    source: edge.source,
-    target: edge.target,
-    type: "smoothstep",
-    animated: true,
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-      color: phase === "after" ? "#10b981" : "#f43f5e",
-      width: 18,
-      height: 18,
-    },
-    style: {
-      stroke: phase === "after" ? "#10b981" : "#f43f5e",
-      strokeWidth: 2.2,
-      filter: phase === "after" ? "drop-shadow(0 0 8px rgba(16,185,129,0.4))" : "drop-shadow(0 0 8px rgba(244,63,94,0.25))",
-    },
-  }));
+  const edges: Edge[] = graph.edges.map((edge) => {
+    const isAfter = phase === "after";
+    const stroke = isAfter ? "#10b981" : "#f43f5e";
+    return {
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      type: "smoothstep",
+      animated: isAfter,
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: stroke,
+        width: 18,
+        height: 18,
+      },
+      style: {
+        stroke,
+        strokeWidth: 2.2,
+        filter: isAfter ? "drop-shadow(0 0 8px rgba(16,185,129,0.4))" : "drop-shadow(0 0 4px rgba(244,63,94,0.15))",
+      },
+    };
+  });
 
   return { nodes, edges };
-}
-
-function normalizeWorkflowLabel(label: string) {
-  return label;
 }

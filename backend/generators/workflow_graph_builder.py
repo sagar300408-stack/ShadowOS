@@ -19,11 +19,10 @@ class WorkflowGraphBuilder:
             return self._build_before_graph_from_findings(findings)
 
         labels = [
-            ("lead_arrives", "Lead Arrives", "channel", "Inbound property lead or inquiry received."),
-            ("whatsapp", "WhatsApp", "channel", "Message routed to local broker's WhatsApp."),
-            ("excel", "Excel", "manual_system", "Lead status is manually copied into spreadsheets."),
-            ("manual_followup", "Manual Follow-Up", "manual_task", "Broker manually remembers and sends follow-ups."),
-            ("lead_lost", "Lead Lost", "risk", "Delayed response decays interest and leads to lead loss."),
+            ("whatsapp", "WhatsApp", "channel", "Messages arrive in disconnected local chat threads."),
+            ("excel", "Excel", "manual_system", "Lead details are manually transcribed into spreadsheet rows."),
+            ("manual_followup", "Manual Follow-Up", "manual_task", "Brokers manually schedule and prompt follow-up visits."),
+            ("lost_lead", "Lost Lead", "risk", "Handoff latency decays interest, leading to lost conversion."),
         ]
         return self._build_linear_graph(labels, animated=False)
 
@@ -32,11 +31,10 @@ class WorkflowGraphBuilder:
             return self._build_after_graph_from_recommendations(recommendations)
 
         labels = [
-            ("lead_arrives", "Lead Arrives", "channel", "Inbound property lead or inquiry received."),
-            ("ai_extraction", "AI Extraction", "automation", "Extract buyer intent, budget, and location from channels."),
-            ("crm_sync", "CRM Sync", "automation", "Synchronize prospect profile to CRM automatically."),
-            ("automated_followup", "Automated Follow-Up", "automation", "Trigger instant contextual auto-follow ups."),
-            ("lead_recovered", "Lead Recovered", "outcome", "Fast response recovery saves the deal."),
+            ("ai_extraction", "AI Extraction", "automation", "Intelligent intent and budget extraction in real-time."),
+            ("crm_sync", "CRM Sync", "automation", "Automated synchronization of lead profile to active record database."),
+            ("automated_followup", "Automated Follow-Up", "automation", "Instant context-aware replies and auto-visiting triggers."),
+            ("lead_recovered", "Lead Recovered", "outcome", "Rapid engagement loop prevents drop-off and secures deal."),
         ]
         return self._build_linear_graph(labels, animated=True)
 

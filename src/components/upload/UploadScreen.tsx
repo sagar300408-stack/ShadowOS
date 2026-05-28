@@ -12,6 +12,15 @@ import {
   Radar,
   UploadCloud,
   XCircle,
+  Clock3,
+  Hourglass,
+  TrendingUp,
+  Bot,
+  Zap,
+  Repeat2,
+  ShieldAlert,
+  Workflow,
+  BrainCircuit,
 } from "lucide-react";
 import { uploadWorkflowFile, type UploadMetadata } from "@/lib/shadowos-api";
 
@@ -19,6 +28,7 @@ const ACCEPTED_EXTENSIONS = [".csv", ".xls", ".xlsx"];
 const ACCEPT_ATTRIBUTE = ".csv,.xls,.xlsx,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 type UploadState = "idle" | "ready" | "uploading" | "uploaded" | "error";
+type IntroStep = "pain" | "upload" | "discovery" | "verdict" | "summary";
 
 export function UploadScreen() {
   const router = useRouter();
@@ -28,6 +38,9 @@ export function UploadScreen() {
   const [status, setStatus] = useState<UploadState>("idle");
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Walkthrough Onboarding Flow States
+  const [introStep, setIntroStep] = useState<IntroStep>("pain");
 
   // Analysis simulation states
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -87,6 +100,7 @@ export function UploadScreen() {
       return;
     }
 
+    setIntroStep("discovery");
     setIsAnalyzing(true);
     setAnalysisProgress(0);
     setAnalysisLogs([]);
@@ -111,15 +125,373 @@ export function UploadScreen() {
       } else {
         clearInterval(interval);
         setTimeout(() => {
-          router.push("/dashboard");
+          setIsAnalyzing(false);
+          setIntroStep("verdict");
         }, 900);
       }
-    }, 600);
+    }, 500);
   };
 
+  // PRIORITY 1: PAIN SCREEN
+  if (introStep === "pain") {
+    return (
+      <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-6 text-slate-100 font-sans">
+        <div className="w-full max-w-4xl border border-cyan-500/10 bg-slate-950/60 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.52)] backdrop-blur-md relative overflow-hidden animate-[metric-rise_450ms_ease-out_both]">
+          {/* Subtle decoration nodes */}
+          <div className="absolute top-0 right-0 border-l border-b border-cyan-500/20 bg-cyan-950/40 px-3 py-1 text-[9px] font-mono tracking-widest text-cyan-400 uppercase">
+            Operational Gap Report
+          </div>
+          <div className="absolute -top-24 -left-24 size-48 rounded-full bg-cyan-500/5 blur-3xl pointer-events-none" />
+          <div className="space-y-8 relative z-20">
+            <div className="space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-cyan-400 font-mono">
+                Real Estate Workflow Vulnerability
+              </p>
+              <h2 className="text-2xl md:text-4xl font-extrabold leading-snug text-white">
+                "Your leads aren't disappearing. <br/>
+                <span className="text-cyan-400">Your workflow is."</span>
+              </h2>
+            </div>
+
+            {/* FLOW CHART TIMELINE */}
+            <div className="border border-slate-900 bg-slate-950/50 p-6">
+              <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase block mb-4">
+                The Leakage Pipeline (Manual Flow Decay)
+              </span>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 text-xs font-mono relative">
+                {[
+                  { title: "Lead WhatsApp", desc: "Lead arrives via chat" },
+                  { title: "Excel Sheet", desc: "Broker manually updates sheet" },
+                  { title: "Manual Visit Track", desc: "Site visit logged on paper" },
+                  { title: "Delayed Follow-Up", desc: "No reminders, 12h+ contact lag" },
+                  { title: "Lead Disappears", desc: "Zero conversion / deal lost" }
+                ].map((step, idx, arr) => (
+                  <div key={idx} className="flex-1 flex md:flex-col items-start gap-3 md:gap-2 relative z-10">
+                    <div className="flex items-center md:flex-col gap-3 md:gap-2 w-full">
+                      <div className="grid size-7 shrink-0 place-items-center border border-rose-500/30 bg-rose-950/50 text-rose-400 font-bold text-xs rounded-full">
+                        {idx + 1}
+                      </div>
+                      {idx < arr.length - 1 && (
+                        <div className="hidden md:block w-full h-px border-t border-dashed border-rose-500/20 my-auto flex-1 mt-3.5" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-200">{step.title}</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5 leading-normal">{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* KEY BUSINESS OUTCOMES / METRICS */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 border-t border-slate-900 pt-6">
+              <div className="border border-rose-500/15 bg-rose-950/5 p-4 text-center flex flex-col justify-between min-h-[90px]">
+                <span className="text-[9px] uppercase tracking-widest text-slate-500 font-mono block">
+                  Lead Loss Rate
+                </span>
+                <span className="text-2xl font-extrabold text-rose-400 block mt-2">
+                  32%
+                </span>
+              </div>
+              <div className="border border-amber-500/15 bg-amber-950/5 p-4 text-center flex flex-col justify-between min-h-[90px]">
+                <span className="text-[9px] uppercase tracking-widest text-slate-500 font-mono block">
+                  Hours Lost Per Week
+                </span>
+                <span className="text-2xl font-extrabold text-amber-400 block mt-2">
+                  18 Hours
+                </span>
+              </div>
+              <div className="border border-rose-500/15 bg-rose-950/5 p-4 text-center flex flex-col justify-between min-h-[90px]">
+                <span className="text-[9px] uppercase tracking-widest text-slate-500 font-mono block">
+                  Revenue Exposure
+                </span>
+                <span className="text-2xl font-extrabold text-rose-400 block mt-2">
+                  ₹12,40,000
+                </span>
+              </div>
+              <div className="border border-emerald-500/15 bg-emerald-950/5 p-4 text-center flex flex-col justify-between min-h-[90px]">
+                <span className="text-[9px] uppercase tracking-widest text-slate-500 font-mono block">
+                  Potential Recovery
+                </span>
+                <span className="text-2xl font-extrabold text-emerald-400 block mt-2 font-mono">
+                  ₹8,20,000
+                </span>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setIntroStep("upload")}
+                className="inline-flex h-11 items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-6 text-xs tracking-wider uppercase transition border border-cyan-400/40 rounded-none cursor-pointer"
+              >
+                <span>Reveal Operational Blind Spots</span>
+                <ArrowRight className="size-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // PRIORITY 1: AI DISCOVERY SEQUENCE
+  if (introStep === "discovery") {
+    return (
+      <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-6 text-slate-100 font-sans">
+        <div className="w-full max-w-2xl border border-cyan-500/15 bg-slate-950/60 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.52)] backdrop-blur-md relative overflow-hidden animate-[metric-rise_450ms_ease-out_both]">
+          {/* Telemetry scan line & signal grids */}
+          <div className="absolute left-0 right-0 h-0.5 bg-cyan-500/50 shadow-[0_0_10px_rgba(34,211,238,0.8)] animate-[scan-line_3s_linear_infinite] pointer-events-none z-10" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(34,211,238,0.03)_1px,transparent_1px)] bg-[size:100%_6px] pointer-events-none z-10 animate-pulse" />
+          
+          <div className="flex min-h-[380px] flex-col justify-between p-4 font-mono relative z-20">
+            <div>
+              <div className="flex items-center justify-between border-b border-cyan-500/20 pb-3 mb-5">
+                <span className="text-xs font-bold text-cyan-300 tracking-wider">
+                  SYSTEM INTEGRITY SCAN: RADAR
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-cyan-400 animate-ping" />
+                  <span className="text-[10px] text-cyan-400">ACTIVE</span>
+                </span>
+              </div>
+
+              {/* CIRCULAR GAUGES & PROGRESS */}
+              <div className="flex items-center gap-6 my-6">
+                <div className="relative size-16 shrink-0 grid place-items-center">
+                  <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-500/30 animate-spin" />
+                  <div className="absolute inset-2 rounded-full border border-cyan-400 animate-pulse" />
+                  <span className="text-xs font-bold text-cyan-300">{analysisProgress}%</span>
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-2 w-full bg-slate-900 border border-cyan-500/20">
+                    <div
+                      className="h-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)] transition-all duration-500"
+                      style={{ width: `${analysisProgress}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-slate-400 uppercase tracking-widest">
+                    Analyzing operational footprints
+                  </span>
+                </div>
+              </div>
+
+              {/* LOG WINDOW */}
+              <div className="border border-cyan-500/10 bg-slate-950 p-4 h-48 overflow-y-auto space-y-2 text-xs select-none">
+                {analysisLogs.map((log, index) => {
+                  const isLast = index === analysisLogs.length - 1;
+                  return (
+                    <div
+                      key={index}
+                      className={`flex items-start gap-2 transition-all duration-300 ${
+                        isLast ? "text-cyan-300 font-semibold" : "text-slate-500"
+                      }`}
+                    >
+                      <span className="text-[10px] text-cyan-600 mt-0.5">❯</span>
+                      <span className={isLast ? "shadow-[0_0_8px_rgba(6,182,212,0.15)]" : ""}>
+                        {log}
+                        {isLast && <span className="inline-block w-1.5 h-3.5 bg-cyan-400 ml-1.5 animate-pulse" />}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mt-4 text-[10px] text-slate-500 text-center uppercase tracking-widest">
+              Do not interrupt. Generating telemetry...
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // PRIORITY 2: INTELLIGENCE VERDICT SCREEN
+  if (introStep === "verdict") {
+    return (
+      <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-6 text-slate-100 font-sans">
+        <div className="w-full max-w-4xl border border-cyan-500/30 bg-slate-950/40 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.52)] relative overflow-hidden backdrop-blur-md animate-[metric-rise_450ms_ease-out_both]">
+          <div className="absolute top-0 right-0 border-l border-b border-cyan-500/20 bg-cyan-950/40 px-3 py-1 text-[9px] font-mono tracking-widest text-cyan-400 uppercase">
+            Intelligence Verdict
+          </div>
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="size-2.5 rounded-full bg-cyan-400 animate-ping" />
+                <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 font-mono">
+                  SHADOWOS INTELLIGENCE DIAGNOSIS
+                </h2>
+              </div>
+              <p className="text-xl md:text-2xl font-extrabold text-slate-100 leading-snug">
+                ShadowOS discovered that delayed follow-ups are responsible for most lost revenue opportunities.
+              </p>
+            </div>
+
+            {/* WHY SHADOWOS FLAGGED THIS */}
+            <div className="border border-cyan-500/10 bg-cyan-950/5 p-5">
+              <span className="text-[10px] font-mono tracking-widest text-cyan-400 uppercase block mb-3 font-semibold">
+                Why ShadowOS Flagged This
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300 font-mono">
+                <div className="flex items-center gap-2">
+                  <span className="text-cyan-500 font-bold">✓</span>
+                  <span>Follow-up delays detected</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-cyan-500 font-bold">✓</span>
+                  <span>Communication fragmentation detected</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-cyan-500 font-bold">✓</span>
+                  <span>Repeated manual entry detected</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-cyan-500 font-bold">✓</span>
+                  <span>Workflow leakage detected</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-b border-cyan-500/10 py-6">
+              <div className="border border-rose-500/15 bg-rose-950/15 p-4 flex flex-col justify-between min-h-[90px]">
+                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-mono">
+                  Revenue Exposure
+                </span>
+                <span className="text-2xl font-extrabold text-rose-400 mt-2 font-mono">
+                  ₹12,40,000
+                </span>
+              </div>
+              <div className="border border-amber-500/15 bg-amber-950/15 p-4 flex flex-col justify-between min-h-[90px]">
+                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-mono">
+                  Manual Work
+                </span>
+                <span className="text-2xl font-extrabold text-amber-400 mt-2 font-mono">
+                  18 hrs/week
+                </span>
+              </div>
+              <div className="border border-cyan-500/15 bg-cyan-950/15 p-4 flex flex-col justify-between min-h-[90px]">
+                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-mono">
+                  Automation Opps
+                </span>
+                <span className="text-2xl font-extrabold text-cyan-300 mt-2 font-mono">
+                  4 Active
+                </span>
+              </div>
+              <div className="border border-rose-500/15 bg-rose-950/15 p-4 flex flex-col justify-between min-h-[90px]">
+                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-mono">
+                  Operational Risk
+                </span>
+                <span className="text-2xl font-extrabold text-rose-500 mt-2 font-mono uppercase">
+                  High
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIntroStep("summary")}
+                className="inline-flex h-11 items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-6 text-xs tracking-wider uppercase transition border border-cyan-400/40 rounded-none cursor-pointer"
+              >
+                <span>View Operational Impact</span>
+                <ArrowRight className="size-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // PRIORITY 3: EXECUTIVE SUMMARY SCREEN
+  if (introStep === "summary") {
+    return (
+      <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-6 text-slate-100 font-sans">
+        <div className="w-full max-w-4xl border border-cyan-500/30 bg-slate-950/40 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.52)] relative overflow-hidden backdrop-blur-md animate-[metric-rise_450ms_ease-out_both]">
+          <div className="absolute top-0 right-0 border-l border-b border-cyan-500/20 bg-cyan-950/40 px-3 py-1 text-[9px] font-mono tracking-widest text-cyan-400 uppercase">
+            Operational Summary
+          </div>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400 font-mono">
+                ShadowOS Intelligence Summary
+              </h2>
+              <p className="text-sm text-slate-300 leading-relaxed max-w-3xl">
+                Delayed follow-up workflows and fragmented communication channels are responsible for the majority of operational leakage detected.
+              </p>
+            </div>
+
+            <div className="text-[11px] text-slate-400 uppercase tracking-widest font-mono border-t border-cyan-500/10 pt-4">
+              ShadowOS Detected:
+            </div>
+
+            {/* DETECTED METRICS LIST */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 py-4 border-b border-cyan-500/10">
+              <div className="border border-rose-500/15 bg-rose-950/10 p-4 flex flex-col justify-between min-h-[90px]">
+                <span className="text-[10px] uppercase tracking-widest text-slate-500 font-mono block leading-normal">
+                  Revenue Leakage
+                </span>
+                <span className="text-xl font-extrabold text-rose-400 mt-2 block font-mono">
+                  ₹12,40,000
+                </span>
+              </div>
+              <div className="border border-amber-500/15 bg-amber-950/10 p-4 flex flex-col justify-between min-h-[90px]">
+                <span className="text-[10px] uppercase tracking-widest text-slate-500 font-mono block leading-normal">
+                  Manual Work
+                </span>
+                <span className="text-xl font-extrabold text-amber-400 mt-2 block font-mono">
+                  18 hrs/week
+                </span>
+              </div>
+              <div className="border border-rose-500/15 bg-rose-950/10 p-4 flex flex-col justify-between min-h-[90px]">
+                <span className="text-[10px] uppercase tracking-widest text-slate-500 font-mono block leading-normal">
+                  Lead Drop-off
+                </span>
+                <span className="text-xl font-extrabold text-rose-550 mt-2 block font-mono">
+                  32%
+                </span>
+              </div>
+              <div className="border border-cyan-500/15 bg-cyan-950/10 p-4 flex flex-col justify-between min-h-[90px]">
+                <span className="text-[10px] uppercase tracking-widest text-slate-500 font-mono block leading-normal">
+                  Automation Opps
+                </span>
+                <span className="text-xl font-extrabold text-cyan-300 mt-2 block font-mono">
+                  4
+                </span>
+              </div>
+              <div className="border border-emerald-500/15 bg-emerald-950/10 p-4 flex flex-col justify-between min-h-[90px] col-span-2 md:col-span-1">
+                <span className="text-[10px] uppercase tracking-widest text-slate-500 font-mono block leading-normal">
+                  Potential Recovery
+                </span>
+                <span className="text-xl font-extrabold text-emerald-400 mt-2 block font-mono">
+                  ₹8,20,000
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard")}
+                className="inline-flex h-11 items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-6 text-xs tracking-wider uppercase transition border border-emerald-400/40 rounded-none cursor-pointer"
+              >
+                <span>Access Operational Dashboard</span>
+                <ArrowRight className="size-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // DEFAULT UPLOAD SCREEN
   return (
-    <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-6 text-slate-100">
-      <div className="w-full max-w-6xl">
+    <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-6 text-slate-100 font-sans">
+      <div className="w-full max-w-6xl animate-[metric-rise_450ms_ease-out_both]">
         <div className="grid flex-1 items-center gap-8 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="space-y-6">
             <div className="space-y-4">
@@ -320,4 +692,3 @@ export function UploadScreen() {
     </main>
   );
 }
-

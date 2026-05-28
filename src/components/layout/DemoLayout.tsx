@@ -179,51 +179,64 @@ export function DemoLayout({ children }: DemoLayoutProps) {
           {/* SIDEBAR NAVIGATION */}
           <aside className="w-full md:w-64 shrink-0 border-r border-cyan-500/10 bg-slate-950/30 p-4 md:p-6 flex flex-col justify-between backdrop-blur-sm">
             <div className="space-y-6">
-              <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 border-b border-slate-800 pb-2">
-                Demo Pipeline Sequence
+              <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400 border-b border-cyan-500/20 pb-2 flex items-center justify-between">
+                <span>Mission Pipeline</span>
+                <span className="flex items-center gap-1">
+                  <span className="size-1 bg-cyan-400 rounded-full animate-ping" />
+                  <span className="text-[8px] text-cyan-400/70 font-mono font-bold tracking-widest">LIVE</span>
+                </span>
               </div>
-              <nav className="space-y-2">
+              <nav className="space-y-2.5">
                 {STEPS.map((step, index) => {
-                  const Icon = step.icon;
                   const isActive = index === activeIndex;
                   const isCompleted = index < activeIndex;
 
                   let stepColorClass = "text-slate-500 border-slate-900 bg-transparent";
                   if (isActive) {
-                    stepColorClass = "border-cyan-500/50 bg-cyan-950/30 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.06)]";
+                    stepColorClass = "border-cyan-500/50 bg-cyan-950/30 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.1)]";
                   } else if (isCompleted) {
-                    stepColorClass = "border-emerald-500/20 bg-emerald-950/10 text-emerald-400";
+                    stepColorClass = "border-emerald-500/25 bg-emerald-950/15 text-emerald-400";
                   }
 
                   return (
                     <Link
                       key={step.path}
                       href={step.path}
-                      className={`group flex items-center gap-3 border p-3 transition-all hover:bg-slate-900/50 ${stepColorClass}`}
+                      className={`group flex items-center gap-3 border p-3 transition-all hover:bg-slate-900/40 relative overflow-hidden ${stepColorClass}`}
                     >
+                      {isActive && (
+                        /* Pulsing scanner bar overlay on active step */
+                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse" />
+                      )}
+                      
                       <div
-                        className={`grid size-8 place-items-center border text-xs transition-colors ${
+                        className={`grid size-8 place-items-center border text-[11px] font-mono transition-colors ${
                           isActive
-                            ? "border-cyan-400 bg-cyan-950/80 text-cyan-300"
+                            ? "border-cyan-400 bg-cyan-950/90 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.3)]"
                             : isCompleted
-                            ? "border-emerald-500/30 bg-emerald-950/80 text-emerald-300"
-                            : "border-slate-800 bg-slate-900/80 text-slate-500 group-hover:border-slate-700"
+                            ? "border-emerald-500/35 bg-emerald-950/80 text-emerald-400"
+                            : "border-slate-800 bg-slate-900/80 text-slate-600 group-hover:border-slate-700 group-hover:text-slate-400"
                         }`}
                       >
                         {isCompleted ? "✓" : `0${index + 1}`}
                       </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
+                      
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1.5">
                           <span
-                            className={`text-xs font-semibold uppercase tracking-wider ${
-                              isActive ? "text-white" : isCompleted ? "text-slate-300" : "text-slate-500 group-hover:text-slate-400"
+                            className={`text-xs font-bold uppercase tracking-wider ${
+                              isActive ? "text-white" : isCompleted ? "text-slate-200" : "text-slate-500 group-hover:text-slate-400"
                             }`}
                           >
                             {step.title}
                           </span>
-                          {!isActive && !isCompleted && <Lock className="size-3 text-slate-600" />}
+                          {isActive && (
+                            <span className="text-[8px] font-mono text-cyan-400/80 px-1 border border-cyan-500/20 bg-cyan-950/50 uppercase font-bold">
+                              ACTIVE
+                            </span>
+                          )}
                         </div>
-                        <p className="text-[10px] text-slate-400 truncate tracking-wide">{step.subtitle}</p>
+                        <p className="text-[10px] text-slate-500 truncate tracking-wide mt-0.5">{step.subtitle}</p>
                       </div>
                     </Link>
                   );
