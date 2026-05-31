@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "reactflow/dist/style.css";
 import "./globals.css";
 import { DemoLayout } from "@/components/layout/DemoLayout";
+import { AnalysisProvider } from "@/lib/AnalysisContext";
 
 export const metadata: Metadata = {
   title: "ShadowOS - AI Operational Intelligence System",
@@ -17,7 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <DemoLayout>{children}</DemoLayout>
+        <AnalysisProvider>
+          <DemoLayout>{children}</DemoLayout>
+        </AnalysisProvider>
       </body>
     </html>
   );

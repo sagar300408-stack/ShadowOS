@@ -28,7 +28,8 @@ import {
   Workflow,
   Zap,
 } from "lucide-react";
-import { fetchWorkflowGraph, type WorkflowGraph, type WorkflowNodeData, type WorkflowResponse } from "@/lib/shadowos-api";
+import { useAnalysis } from "@/lib/AnalysisContext";
+import { type WorkflowGraph, type WorkflowNodeData, type WorkflowResponse } from "@/lib/shadowos-api";
 
 type FlowNodeData = WorkflowNodeData & {
   phase: "before" | "after" | "transform";
@@ -42,9 +43,8 @@ const nodeTypes = {
 };
 
 export function WorkflowVisualization() {
-  const [workflow, setWorkflow] = useState<WorkflowResponse | null>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
-  const [error, setError] = useState<string | null>(null);
+  const { analysis, status, error } = useAnalysis();
+  const workflow = analysis?.workflow;
   
   // Navigation & Interactive Tabs
   const [activeTab, setActiveTab] = useState<"split" | "simulator">("split");
@@ -54,33 +54,6 @@ export function WorkflowVisualization() {
   const [simProgress, setSimProgress] = useState(0);
   const [simLogs, setSimLogs] = useState<string[]>([]);
   const [simGraphState, setSimGraphState] = useState<"before" | "transitioning" | "after">("before");
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadWorkflow() {
-      try {
-        const graph = await fetchWorkflowGraph();
-        if (!active) {
-          return;
-        }
-        setWorkflow(graph);
-        setStatus("ready");
-      } catch (workflowError) {
-        if (!active) {
-          return;
-        }
-        setError(workflowError instanceof Error ? workflowError.message : "Workflow graph is unavailable.");
-        setStatus("error");
-      }
-    }
-
-    loadWorkflow();
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const beforeFlow = useMemo(() => buildReactFlowGraph(workflow?.before, "before"), [workflow]);
   const afterFlow = useMemo(() => buildReactFlowGraph(workflow?.after, "after"), [workflow]);
@@ -204,7 +177,7 @@ export function WorkflowVisualization() {
     return { nodes, edges };
   }, [workflow, simProgress, simState]);
 
-  const runSimulation = () => {
+  const runTransformation = () => {
     if (simState === "running") return;
     setSimState("running");
     setSimGraphState("before");
@@ -333,7 +306,7 @@ export function WorkflowVisualization() {
           {/* SIMULATOR CANVAS PANEL */}
           <section className="min-h-[660px] border border-cyan-500/15 bg-slate-950/40 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur relative flex flex-col justify-between">
             <div className="absolute top-0 right-0 border-l border-b border-cyan-500/20 bg-slate-950/80 px-3 py-1 text-[9px] font-mono tracking-widest text-cyan-400 uppercase">
-              Transform Sandbox
+              Transformation Engine
             </div>
             
             <div className="mb-4">
@@ -357,7 +330,7 @@ export function WorkflowVisualization() {
                 <div className="grid h-full place-items-center">
                   <div className="flex items-center gap-3 text-xs text-cyan-200">
                     <Loader2 className="size-4 animate-spin" />
-                    Initializing Simulation Canvas...
+                    Initializing Transformation Canvas...
                   </div>
                 </div>
               ) : (
@@ -385,7 +358,7 @@ export function WorkflowVisualization() {
             <div className="mt-4 flex items-center justify-between border-t border-cyan-500/10 pt-3">
               <div className="flex items-center gap-3">
                 <button
-                  onClick={runSimulation}
+                  onClick={runTransformation}
                   disabled={simState === "running"}
                   className="inline-flex h-9 items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 text-xs tracking-wider uppercase transition border border-cyan-400/40 rounded-none disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed cursor-pointer"
                 >

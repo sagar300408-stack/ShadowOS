@@ -3,6 +3,7 @@ from enum import Enum
 from uuid import UUID
 
 from pydantic import BaseModel, Field
+from backend.schemas.upload_schema import CanonicalRecord
 
 
 class AnalysisDepth(str, Enum):
@@ -11,35 +12,13 @@ class AnalysisDepth(str, Enum):
     deep = "deep"
 
 
-class WorkflowRecordInput(BaseModel):
-    record_id: str = Field(examples=["lead-1042"])
-    workflow_name: str = Field(examples=["Lead intake"])
-    task_name: str = Field(examples=["Broker follow-up"])
-    owner: str | None = Field(default=None, examples=["Aisha"])
-    team: str | None = Field(default=None, examples=["Sales"])
-    status: str | None = Field(default=None, examples=["open"])
-    channel: str | None = Field(default=None, examples=["WhatsApp"])
-    source_system: str | None = Field(default=None, examples=["CRM"])
-    is_manual: bool = False
-    repeat_count: int = Field(default=1, ge=0)
-    handoff_count: int = Field(default=0, ge=0)
-    customer_value: float = Field(default=0, ge=0)
-    created_at: datetime | None = None
-    started_at: datetime | None = None
-    completed_at: datetime | None = None
-    due_at: datetime | None = None
-    follow_up_due_at: datetime | None = None
-    last_contact_at: datetime | None = None
-    metadata: dict[str, str | int | float | bool] = Field(default_factory=dict)
-
-
 class AnalyzeRequest(BaseModel):
     upload_id: UUID
     industry: str = Field(default="Real Estate", examples=["Real Estate"])
     analysis_depth: AnalysisDepth = AnalysisDepth.standard
-    records: list[WorkflowRecordInput] = Field(
+    records: list[CanonicalRecord] = Field(
         min_length=1,
-        description="Structured business workflow records extracted from an uploaded file.",
+        description="Structured canonical workflow records extracted from an uploaded file.",
     )
 
 
@@ -66,9 +45,16 @@ class OpportunityInsight(BaseModel):
 
 
 class AnalyzeResponse(BaseModel):
-    inefficiency_score: float = Field(ge=0, le=100)
-    revenue_leakage: str
-    time_waste: str
+    operational_health_score: float = Field(ge=0, le=100)
+    lead_drop_off_rate: float
+    revenue_leakage_amount: float
+    average_follow_up_delay_days: float
+    bottleneck_count: int
+    fragmentation_score: float
+    manual_workload_hours: float
+    automation_potential_score: float
+
+    # Legacy aggregations for UI compatibility if needed, but we can replace or keep them
     findings: list[IntelligenceFinding]
     risks: list[RiskInsight]
     opportunities: list[OpportunityInsight]

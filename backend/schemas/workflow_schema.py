@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-
+from backend.schemas.recommendation_schema import AutomationRecommendation
 
 class ReactFlowPosition(BaseModel):
     x: float
@@ -52,14 +52,6 @@ class WorkflowFindingInput(BaseModel):
     estimated_revenue_leakage: float = Field(default=0, ge=0)
 
 
-class AutomationRecommendation(BaseModel):
-    id: str
-    title: str
-    type: str = Field(examples=["crm_sync"])
-    description: str
-    solves: list[str]
-    priority: str = Field(examples=["high"])
-    expected_impact: str
 
 
 class WorkflowGenerationResponse(BaseModel):

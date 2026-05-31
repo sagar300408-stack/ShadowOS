@@ -33,20 +33,20 @@ const STEPS: Step[] = [
     icon: FolderOpen,
   },
   {
-    title: "AI Verdict",
+    title: "Intelligence Findings",
     subtitle: "Exposure & diagnostics",
     path: "/dashboard",
     icon: BrainCircuit,
   },
   {
-    title: "Workflow Map",
+    title: "Workflow Analysis",
     subtitle: "Transformation simulator",
     path: "/workflow",
     icon: Network,
   },
   {
-    title: "Deploy Sandbox",
-    subtitle: "System deployment",
+    title: "Automation Blueprint",
+    subtitle: "Executive automation plan",
     path: "/deploy",
     icon: Terminal,
   },
@@ -58,6 +58,8 @@ const STEPS: Step[] = [
   },
 ];
 
+import { useAnalysis } from "@/lib/AnalysisContext";
+
 interface DemoLayoutProps {
   children: ReactNode;
 }
@@ -66,6 +68,7 @@ export function DemoLayout({ children }: DemoLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [time, setTime] = useState("");
+  const { analysis } = useAnalysis();
 
   // Determine active step index
   const activeIndex = STEPS.findIndex((step) => pathname?.startsWith(step.path)) ?? 0;
@@ -87,45 +90,7 @@ export function DemoLayout({ children }: DemoLayoutProps) {
     return () => clearInterval(interval);
   }, []);
 
-  // Floating guide info
-  const getWalkthroughInfo = () => {
-    switch (activeIndex) {
-      case 0:
-        return {
-          text: "Upload a CSV/Excel file representing real estate logs, then trigger the AI telemetry scan.",
-          nextText: "Review AI Telemetry",
-          nextPath: "/dashboard",
-        };
-      case 1:
-        return {
-          text: "Inspect the primary operational leakage (₹12,40,000 exposure). Review findings and the Top 3 recommended automations.",
-          nextText: "Visualize Workflow Transformation",
-          nextPath: "/workflow",
-        };
-      case 2:
-        return {
-          text: "Compare the manual (Before) and automated (After) paths. Run the Transition Simulator to watch the node morphs.",
-          nextText: "Proceed to System Deployment",
-          nextPath: "/deploy",
-        };
-      case 3:
-        return {
-          text: "Trigger the terminal simulation to deploy automated lead follow-up, CRM sync, and qualification agents.",
-          nextText: "Unlock Executive Impact Summary",
-          nextPath: "/impact",
-        };
-      case 4:
-        return {
-          text: "Review the finalized business value metrics (₹8,20,000 recovery) and OpenAI Codex contributions.",
-          nextText: "Reset Walkthrough",
-          nextPath: "/upload",
-        };
-      default:
-        return null;
-    }
-  };
 
-  const guide = getWalkthroughInfo();
 
   return (
     <div className="relative min-h-screen bg-[#02050d] text-slate-100 font-sans selection:bg-cyan-500/30">
@@ -262,33 +227,7 @@ export function DemoLayout({ children }: DemoLayoutProps) {
           </main>
         </div>
 
-        {/* BOTTOM WALKTHROUGH ACTION BAR */}
-        {guide && (
-          <footer className="fixed bottom-0 left-0 right-0 z-40 border-t border-cyan-500/20 bg-slate-950/90 px-4 py-3 md:px-6 md:py-4 backdrop-blur-md shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
-            <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-2.5">
-                <div className="mt-1 shrink-0">
-                  <span className="relative flex size-2.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full size-2.5 bg-cyan-500"></span>
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
-                  <span className="font-semibold text-cyan-300 font-mono uppercase mr-1">Demo Guide:</span>
-                  {guide.text}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => router.push(guide.nextPath)}
-                className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 text-xs tracking-wider uppercase transition shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_20px_rgba(6,182,212,0.5)] border border-cyan-400/40 rounded-none cursor-pointer"
-              >
-                <span>{guide.nextText}</span>
-                <ChevronRight className="size-3.5" />
-              </button>
-            </div>
-          </footer>
-        )}
+
       </div>
     </div>
   );

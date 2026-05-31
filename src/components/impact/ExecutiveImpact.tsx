@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   BarChart,
@@ -23,15 +23,58 @@ import {
   RefreshCw,
   TrendingUp,
   Zap,
+  Download,
+  Plus
 } from "lucide-react";
+
+import { useAnalysis } from "@/lib/AnalysisContext";
 
 export function ExecutiveImpact() {
   const router = useRouter();
+  const { analysis } = useAnalysis();
+  const impact = analysis?.executive_impact;
+  
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadComplete, setDownloadComplete] = useState(false);
+
+  const handleDownloadBlueprint = async () => {
+    const uploadId = localStorage.getItem("shadowos_upload_id");
+    if (!uploadId) {
+      alert("No active session found.");
+      return;
+    }
+    
+    try {
+      setIsDownloading(true);
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+      const res = await fetch(`${API_BASE_URL}/analysis/${uploadId}/export`, {
+        method: "GET"
+      });
+      if (!res.ok) throw new Error("Failed to generate blueprint.");
+      
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `shadowos-operational-blueprint-${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      setDownloadComplete(true);
+      setTimeout(() => setDownloadComplete(false), 3000);
+    } catch (e) {
+      console.error(e);
+      alert("Error generating blueprint.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const metrics = [
     {
       label: "Revenue Recovery",
-      value: "₹8,20,000",
+      value: `₹${(impact?.revenue_recovery_estimate || 0).toLocaleString()}`,
       unit: "/ month",
       description: "Recaptured leakages from delayed broker response loops",
       icon: DollarSign,
@@ -39,7 +82,7 @@ export function ExecutiveImpact() {
     },
     {
       label: "Manual Work Reduction",
-      value: "62%",
+      value: `${impact?.manual_work_reduction_percent || 0}%`,
       unit: " decrease",
       description: "Hours saved on manual status syncs and local WhatsApp-Excel entry",
       icon: Hourglass,
@@ -47,7 +90,7 @@ export function ExecutiveImpact() {
     },
     {
       label: "Lead Recovery",
-      value: "18%",
+      value: `${impact?.lead_recovery_conversion_increase || 0}%`,
       unit: " conversion",
       description: "Prospect retention gains via auto follow-ups",
       icon: Zap,
@@ -55,7 +98,7 @@ export function ExecutiveImpact() {
     },
     {
       label: "Automation Opportunities",
-      value: "4 Discovered",
+      value: `${impact?.automation_opportunities_count || 0} Discovered`,
       unit: " agents",
       description: "Actionable system blueprints flagged in operational footprints",
       icon: FileSpreadsheet,
@@ -63,7 +106,7 @@ export function ExecutiveImpact() {
     },
     {
       label: "Workflow Efficiency",
-      value: "47%",
+      value: `${impact?.workflow_efficiency_increase || 0}%`,
       unit: " increase",
       description: "Handoff speed improvements across CRM and broker routing hubs",
       icon: TrendingUp,
@@ -71,7 +114,7 @@ export function ExecutiveImpact() {
     },
     {
       label: "Operational Risk Reduction",
-      value: "68%",
+      value: `${impact?.operational_risk_reduction || 0}%`,
       unit: " decrease",
       description: "Decay prevention from multi-channel fragmentation",
       icon: CheckCircle2,
@@ -79,11 +122,7 @@ export function ExecutiveImpact() {
     },
   ];
 
-  const chartData = [
-    { name: "First Response", before: 360, after: 3, unit: " min" },
-    { name: "Weekly Ops Hours", before: 42.5, after: 4.5, unit: " hrs" },
-    { name: "Handoff Delays", before: 24, after: 0.5, unit: " hrs" },
-  ];
+  const chartData = impact?.chart_data || [];
 
   return (
     <div className="space-y-8">
@@ -199,15 +238,26 @@ export function ExecutiveImpact() {
 
           <div className="mt-6 border-t border-cyan-500/10 pt-4 flex flex-col items-stretch gap-3">
             <p className="text-[10px] text-slate-500 text-center uppercase tracking-widest font-mono">
-              End of Walkthrough Cycle
+              Executive Analysis Complete
             </p>
-            <button
-              onClick={() => router.push("/upload")}
-              className="inline-flex h-10 items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 text-xs tracking-wider uppercase transition border border-cyan-400/40 rounded-none cursor-pointer"
-            >
-              <RefreshCw className="size-3.5" />
-              Restart Demo Walkthrough
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleDownloadBlueprint}
+                disabled={isDownloading}
+                className="flex-1 inline-flex min-h-10 py-2 text-center items-center justify-center gap-1.5 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-bold px-4 text-xs tracking-wider uppercase transition border border-cyan-400/40 rounded-none cursor-pointer"
+              >
+                <Download className="size-3.5" />
+                {isDownloading ? "Generating Blueprint..." : downloadComplete ? "Operational Blueprint Ready" : "Download Operational Blueprint"}
+              </button>
+              
+              <button
+                onClick={() => router.push("/upload")}
+                className="flex-1 inline-flex min-h-10 py-2 text-center items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 text-xs tracking-wider uppercase transition border border-slate-700 rounded-none cursor-pointer"
+              >
+                <Plus className="size-3.5" />
+                Analyze New Dataset
+              </button>
+            </div>
           </div>
         </section>
       </div>
@@ -242,7 +292,7 @@ export function ExecutiveImpact() {
             <span className="border border-slate-900 bg-slate-950 px-2.5 py-1 uppercase">✓ Backend acceleration</span>
             <span className="border border-slate-900 bg-slate-950 px-2.5 py-1 uppercase">✓ API integration</span>
             <span className="border border-slate-900 bg-slate-950 px-2.5 py-1 uppercase">✓ Workflow visualization</span>
-            <span className="border border-slate-900 bg-slate-950 px-2.5 py-1 uppercase">✓ Deployment simulation</span>
+            <span className="border border-slate-900 bg-slate-950 px-2.5 py-1 uppercase">✓ Blueprint generation</span>
             <span className="border border-slate-900 bg-slate-950 px-2.5 py-1 uppercase">✓ Architecture refinement</span>
           </div>
         </div>

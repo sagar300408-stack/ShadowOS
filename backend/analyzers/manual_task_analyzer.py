@@ -1,38 +1,48 @@
-from collections import Counter
+from typing import List
 
 from backend.analyzers.base_analyzer import BaseOperationalAnalyzer
-from backend.models.operational_intelligence import IntelligenceSignal, WorkflowRecord
+from backend.models.operational_intelligence import IntelligenceSignal
+from backend.schemas.upload_schema import CanonicalRecord
 
 
 class ManualTaskAnalyzer(BaseOperationalAnalyzer):
     category = "repeated_manual_tasks"
 
-    def analyze(self, records: list[WorkflowRecord]) -> list[IntelligenceSignal]:
-        manual_records = [record for record in records if record.is_manual or record.repeat_count > 2]
-        task_counts = Counter(record.task_name.lower().strip() for record in manual_records)
-        signals: list[IntelligenceSignal] = []
+    def analyze(self, records: List[CanonicalRecord]) -> List[IntelligenceSignal]:
+        signals = []
+        manual_records = []
 
-        for task_name, count in task_counts.items():
-            if count < 3:
-                continue
+        manual_keywords = ["manual", "data entry", "upload", "copy", "paste", "check", "verify", "spreadsheet", "excel"]
 
-            affected = [record for record in manual_records if record.task_name.lower().strip() == task_name]
-            hours_lost = sum(max(record.repeat_count, 1) for record in affected) * 0.25
+        for rec in records:
+            is_manual = False
+            
+            # Check empty system or generic system
+            sys = str(rec.system).lower() if rec.system else ""
+            if not sys or "excel" in sys or "spreadsheet" in sys:
+                is_manual = True
 
+            # Check task type and notes for keywords
+            combined_text = f"{rec.task_type or ''} {rec.notes or ''}".lower()
+            if any(keyword in combined_text for keyword in manual_keywords):
+                is_manual = True
+            
+            if is_manual:
+                manual_records.append(rec)
+
+        if manual_records:
+            # Estimate 0.5 hours lost per manual task
+            hours_lost = len(manual_records) * 0.5
             signals.append(
                 IntelligenceSignal(
                     category=self.category,
-                    title=f"Repeated manual task: {task_name.title()}",
-                    description=(
-                        f"{count} records show repeated manual execution of '{task_name}', "
-                        "indicating a strong automation candidate."
-                    ),
-                    severity="high" if count >= 8 else "medium",
-                    score_impact=min(18, count * 1.8),
-                    evidence=[record.record_id for record in affected[:5]],
+                    title="High Volume of Manual Work",
+                    description=f"Identified {len(manual_records)} records indicating manual data entry or verification.",
+                    severity="medium",
+                    score_impact=10.0,
                     estimated_hours_lost=hours_lost,
+                    evidence=[f"Record ID: {r.record_id}" for r in manual_records[:3]]
                 )
             )
 
         return signals
-

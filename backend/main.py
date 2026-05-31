@@ -1,7 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routes import analyze, dashboard, deploy, health, recommendations, upload, workflow
+from backend.routes import (
+    analyze,
+    analysis,
+    dashboard,
+    deploy,
+    health,
+    recommendations,
+    upload,
+    workflow,
+    executive_report,
+)
 
 app = FastAPI(
     title="ShadowOS API",
@@ -20,8 +30,9 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(upload.router)
 app.include_router(analyze.router)
+app.include_router(analysis.router)
 app.include_router(dashboard.router)
 app.include_router(workflow.router)
 app.include_router(recommendations.router)
 app.include_router(deploy.router)
-
+app.include_router(executive_report.router)

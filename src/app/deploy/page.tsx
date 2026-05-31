@@ -1,5 +1,5 @@
-import { DeploymentSimulation } from "@/components/deploy/DeploymentSimulation";
+import { AutomationBlueprint } from "@/components/deploy/AutomationBlueprint";
 
 export default function DeployPage() {
-  return <DeploymentSimulation />;
+  return <AutomationBlueprint />;
 }

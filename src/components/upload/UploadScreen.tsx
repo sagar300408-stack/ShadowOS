@@ -30,6 +30,8 @@ const ACCEPT_ATTRIBUTE = ".csv,.xls,.xlsx,text/csv,application/vnd.ms-excel,appl
 type UploadState = "idle" | "ready" | "uploading" | "uploaded" | "error";
 type IntroStep = "pain" | "upload" | "discovery" | "verdict" | "summary";
 
+import { useAnalysis } from "@/lib/AnalysisContext";
+
 export function UploadScreen() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,13 +41,15 @@ export function UploadScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Walkthrough Onboarding Flow States
+  // Onboarding Flow States
   const [introStep, setIntroStep] = useState<IntroStep>("pain");
 
-  // Analysis simulation states
+  // Analysis engine states
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [analysisLogs, setAnalysisLogs] = useState<string[]>([]);
+  
+  const { loadAnalysis, analysis } = useAnalysis();
 
   const fileSummary = useMemo(() => {
     if (!selectedFile) {
@@ -87,6 +91,7 @@ export function UploadScreen() {
     try {
       const result = await uploadWorkflowFile(selectedFile);
       setMetadata(result.metadata);
+      localStorage.setItem("shadowos_upload_id", result.metadata.upload_id);
       setStatus("uploaded");
     } catch (uploadError) {
       setMetadata(null);
@@ -95,7 +100,7 @@ export function UploadScreen() {
     }
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!metadata) {
       return;
     }
@@ -103,33 +108,33 @@ export function UploadScreen() {
     setIntroStep("discovery");
     setIsAnalyzing(true);
     setAnalysisProgress(0);
-    setAnalysisLogs([]);
+    setAnalysisLogs(["Initiating operational scan..."]);
 
-    const logMessages = [
-      { text: "Scanning workflow signals...", progress: 15 },
-      { text: "Analyzing lead activity...", progress: 30 },
-      { text: "Detecting fragmented systems...", progress: 45 },
-      { text: "Calculating operational drag...", progress: 60 },
-      { text: "Estimating revenue exposure...", progress: 75 },
-      { text: "Identifying automation opportunities...", progress: 90 },
-      { text: "Generating intelligence profile...", progress: 100 }
-    ];
+    try {
+      setAnalysisProgress(20);
+      setAnalysisLogs((prev) => [...prev, "Connecting to analysis engine..."]);
+      
+      const logInterval = setInterval(() => {
+        setAnalysisProgress((p) => Math.min(p + 15, 85));
+      }, 600);
 
-    let currentLogIndex = 0;
-    const interval = setInterval(() => {
-      if (currentLogIndex < logMessages.length) {
-        const nextLog = logMessages[currentLogIndex];
-        setAnalysisLogs((prev) => [...prev, nextLog.text]);
-        setAnalysisProgress(nextLog.progress);
-        currentLogIndex++;
-      } else {
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsAnalyzing(false);
-          setIntroStep("verdict");
-        }, 900);
-      }
-    }, 500);
+      await loadAnalysis(metadata.upload_id);
+
+      clearInterval(logInterval);
+      setAnalysisProgress(100);
+      setAnalysisLogs((prev) => [...prev, "Scan complete."]);
+      
+      setTimeout(() => {
+        setIsAnalyzing(false);
+        setIntroStep("verdict");
+      }, 1000);
+    } catch (err) {
+      setAnalysisLogs((prev) => [...prev, "Analysis failed."]);
+      setIsAnalyzing(false);
+      setStatus("error");
+      setError("Failed to load analysis telemetry.");
+      setIntroStep("upload");
+    }
   };
 
   // PRIORITY 1: PAIN SCREEN
@@ -190,32 +195,32 @@ export function UploadScreen() {
                 <span className="text-[9px] uppercase tracking-widest text-slate-500 font-mono block">
                   Lead Loss Rate
                 </span>
-                <span className="text-2xl font-extrabold text-rose-400 block mt-2">
+                <span className="text-2xl font-extrabold text-rose-400 block mt-2 font-mono">
                   32%
                 </span>
               </div>
               <div className="border border-amber-500/15 bg-amber-950/5 p-4 text-center flex flex-col justify-between min-h-[90px]">
                 <span className="text-[9px] uppercase tracking-widest text-slate-500 font-mono block">
-                  Hours Lost Per Week
+                  Manual Work
                 </span>
-                <span className="text-2xl font-extrabold text-amber-400 block mt-2">
-                  18 Hours
+                <span className="text-2xl font-extrabold text-amber-400 block mt-2 font-mono">
+                  18 hrs/week
                 </span>
               </div>
               <div className="border border-rose-500/15 bg-rose-950/5 p-4 text-center flex flex-col justify-between min-h-[90px]">
                 <span className="text-[9px] uppercase tracking-widest text-slate-500 font-mono block">
                   Revenue Exposure
                 </span>
-                <span className="text-2xl font-extrabold text-rose-400 block mt-2">
-                  ₹12,40,000
+                <span className="text-2xl font-extrabold text-rose-400 block mt-2 font-mono">
+                  ₹12.4L
                 </span>
               </div>
               <div className="border border-emerald-500/15 bg-emerald-950/5 p-4 text-center flex flex-col justify-between min-h-[90px]">
                 <span className="text-[9px] uppercase tracking-widest text-slate-500 font-mono block">
-                  Potential Recovery
+                  Recovery Potential
                 </span>
                 <span className="text-2xl font-extrabold text-emerald-400 block mt-2 font-mono">
-                  ₹8,20,000
+                  ₹8.2L
                 </span>
               </div>
             </div>
@@ -310,7 +315,7 @@ export function UploadScreen() {
   }
 
   // PRIORITY 2: INTELLIGENCE VERDICT SCREEN
-  if (introStep === "verdict") {
+  if (introStep === "verdict" && analysis) {
     return (
       <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-6 text-slate-100 font-sans">
         <div className="w-full max-w-4xl border border-cyan-500/30 bg-slate-950/40 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.52)] relative overflow-hidden backdrop-blur-md animate-[metric-rise_450ms_ease-out_both]">
@@ -326,7 +331,7 @@ export function UploadScreen() {
                 </h2>
               </div>
               <p className="text-xl md:text-2xl font-extrabold text-slate-100 leading-snug">
-                ShadowOS discovered that delayed follow-ups are responsible for most lost revenue opportunities.
+                {analysis.primary_finding.description}
               </p>
             </div>
 
@@ -336,22 +341,12 @@ export function UploadScreen() {
                 Why ShadowOS Flagged This
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300 font-mono">
-                <div className="flex items-center gap-2">
-                  <span className="text-cyan-500 font-bold">✓</span>
-                  <span>Follow-up delays detected</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-cyan-500 font-bold">✓</span>
-                  <span>Communication fragmentation detected</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-cyan-500 font-bold">✓</span>
-                  <span>Repeated manual entry detected</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-cyan-500 font-bold">✓</span>
-                  <span>Workflow leakage detected</span>
-                </div>
+                {analysis.dashboard.ai_findings.slice(0, 4).map((f, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-cyan-500 font-bold">✓</span>
+                    <span>{f.title}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -361,7 +356,7 @@ export function UploadScreen() {
                   Revenue Exposure
                 </span>
                 <span className="text-2xl font-extrabold text-rose-400 mt-2 font-mono">
-                  ₹12,40,000
+                  ₹{analysis.dashboard.revenue_leakage_estimate.toLocaleString()}
                 </span>
               </div>
               <div className="border border-amber-500/15 bg-amber-950/15 p-4 flex flex-col justify-between min-h-[90px]">
@@ -369,7 +364,7 @@ export function UploadScreen() {
                   Manual Work
                 </span>
                 <span className="text-2xl font-extrabold text-amber-400 mt-2 font-mono">
-                  18 hrs/week
+                  {analysis.dashboard.time_waste_estimate} hrs/week
                 </span>
               </div>
               <div className="border border-cyan-500/15 bg-cyan-950/15 p-4 flex flex-col justify-between min-h-[90px]">
@@ -377,7 +372,7 @@ export function UploadScreen() {
                   Automation Opps
                 </span>
                 <span className="text-2xl font-extrabold text-cyan-300 mt-2 font-mono">
-                  4 Active
+                  {analysis.recommendations.length} Active
                 </span>
               </div>
               <div className="border border-rose-500/15 bg-rose-950/15 p-4 flex flex-col justify-between min-h-[90px]">
@@ -385,7 +380,7 @@ export function UploadScreen() {
                   Operational Risk
                 </span>
                 <span className="text-2xl font-extrabold text-rose-500 mt-2 font-mono uppercase">
-                  High
+                  {analysis.primary_finding.severity}
                 </span>
               </div>
             </div>
@@ -407,7 +402,7 @@ export function UploadScreen() {
   }
 
   // PRIORITY 3: EXECUTIVE SUMMARY SCREEN
-  if (introStep === "summary") {
+  if (introStep === "summary" && analysis) {
     return (
       <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-6 text-slate-100 font-sans">
         <div className="w-full max-w-4xl border border-cyan-500/30 bg-slate-950/40 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.52)] relative overflow-hidden backdrop-blur-md animate-[metric-rise_450ms_ease-out_both]">
@@ -420,12 +415,12 @@ export function UploadScreen() {
                 ShadowOS Intelligence Summary
               </h2>
               <p className="text-sm text-slate-300 leading-relaxed max-w-3xl">
-                Delayed follow-up workflows and fragmented communication channels are responsible for the majority of operational leakage detected.
+                {analysis.primary_finding.description}
               </p>
             </div>
 
             <div className="text-[11px] text-slate-400 uppercase tracking-widest font-mono border-t border-cyan-500/10 pt-4">
-              ShadowOS Detected:
+              ShadowOS Detected (Dataset: {analysis.dataset_type}):
             </div>
 
             {/* DETECTED METRICS LIST */}
@@ -435,7 +430,7 @@ export function UploadScreen() {
                   Revenue Leakage
                 </span>
                 <span className="text-xl font-extrabold text-rose-400 mt-2 block font-mono">
-                  ₹12,40,000
+                  ₹{analysis.dashboard.revenue_leakage_estimate.toLocaleString()}
                 </span>
               </div>
               <div className="border border-amber-500/15 bg-amber-950/10 p-4 flex flex-col justify-between min-h-[90px]">
@@ -443,15 +438,15 @@ export function UploadScreen() {
                   Manual Work
                 </span>
                 <span className="text-xl font-extrabold text-amber-400 mt-2 block font-mono">
-                  18 hrs/week
+                  {analysis.dashboard.time_waste_estimate} hrs/week
                 </span>
               </div>
               <div className="border border-rose-500/15 bg-rose-950/10 p-4 flex flex-col justify-between min-h-[90px]">
                 <span className="text-[10px] uppercase tracking-widest text-slate-500 font-mono block leading-normal">
-                  Lead Drop-off
+                  Inefficiency Score
                 </span>
                 <span className="text-xl font-extrabold text-rose-550 mt-2 block font-mono">
-                  32%
+                  {analysis.dashboard.inefficiency_score}%
                 </span>
               </div>
               <div className="border border-cyan-500/15 bg-cyan-950/10 p-4 flex flex-col justify-between min-h-[90px]">
@@ -459,7 +454,7 @@ export function UploadScreen() {
                   Automation Opps
                 </span>
                 <span className="text-xl font-extrabold text-cyan-300 mt-2 block font-mono">
-                  4
+                  {analysis.recommendations.length}
                 </span>
               </div>
               <div className="border border-emerald-500/15 bg-emerald-950/10 p-4 flex flex-col justify-between min-h-[90px] col-span-2 md:col-span-1">
@@ -467,7 +462,7 @@ export function UploadScreen() {
                   Potential Recovery
                 </span>
                 <span className="text-xl font-extrabold text-emerald-400 mt-2 block font-mono">
-                  ₹8,20,000
+                  ₹{analysis.executive_impact.revenue_recovery_estimate.toLocaleString()}
                 </span>
               </div>
             </div>

@@ -1,59 +1,70 @@
-from fastapi import APIRouter
+from typing import Optional
 
+from fastapi import APIRouter, HTTPException, Query
+
+from backend.schemas.analysis_schema import AnalyzeRequest
 from backend.schemas.dashboard_schema import (
     DashboardAIFinding,
     DashboardAutomationOpportunity,
     DashboardMetricsResponse,
 )
-
+from backend.services.operational_intelligence_service import OperationalIntelligenceEngine
+from backend.services.recommendation_service import RecommendationEngine
+from backend.store import STORE
 
 router = APIRouter(tags=["Dashboard"])
 
 
 @router.get("/dashboard", response_model=DashboardMetricsResponse)
-async def get_dashboard_metrics() -> DashboardMetricsResponse:
+async def get_dashboard_metrics(
+    upload_id: Optional[str] = Query(None, description="The ID of the uploaded dataset")
+) -> DashboardMetricsResponse:
+    if not upload_id or upload_id not in STORE:
+        raise HTTPException(
+            status_code=404,
+            detail="No intelligence payload found. Please upload a dataset first.",
+        )
+
+    # 1. Retrieve raw canonical records from store
+    normalized_data = STORE[upload_id]["normalized_data"]
+
+    # 2. Run Operational Intelligence Engine
+    from uuid import UUID
+    analysis_request = AnalyzeRequest(upload_id=UUID(upload_id), records=normalized_data)
+    engine = OperationalIntelligenceEngine()
+    report = engine.analyze(analysis_request)
+
+    # 3. Run Recommendation Engine
+    rec_engine = RecommendationEngine()
+    recommendations_response = rec_engine.generate(report)
+
+    # 4. Map to Dashboard UI Schema
+    ai_findings = [
+        DashboardAIFinding(
+            title=finding.title,
+            summary=finding.description,
+            severity=finding.severity,
+        )
+        for finding in report.findings
+    ]
+
+    automation_opportunities = [
+        DashboardAutomationOpportunity(
+            title=rec.title,
+            description=rec.proposed_automation,
+            priority=rec.priority,
+            impact=rec.estimated_business_impact,
+        )
+        for rec in recommendations_response.automation_recommendations
+    ]
+
     return DashboardMetricsResponse(
-        inefficiency_score=72.0,
-        revenue_leakage_estimate=1240000.0,
-        time_waste_estimate=18.0,
-        repeated_task_count=18,
-        workflow_fragmentation_score=68.0,
-        automation_potential=85.0,
-        automation_opportunities=[
-            DashboardAutomationOpportunity(
-                title="Lead Follow-Up Agent",
-                description="Trigger scheduled WhatsApp reminders and initial replies when high-value leads sit idle.",
-                priority="critical",
-                impact="Cuts response time to <3 mins and recovers delayed leads, saving 18h/week.",
-            ),
-            DashboardAutomationOpportunity(
-                title="CRM Sync Agent",
-                description="Unify WhatsApp, Excel, and lead tracker updates automatically in real-time.",
-                priority="critical",
-                impact="Eliminates manual entry errors and double-entry entirely, creating a unified timeline.",
-            ),
-            DashboardAutomationOpportunity(
-                title="Lead Qualification Agent",
-                description="Automatically filter and score incoming buyer requests based on territory, budget, and urgency.",
-                priority="high",
-                impact="Saves hours of manual broker filtering by routing only warm, qualified prospects.",
-            ),
-        ],
-        ai_findings=[
-            DashboardAIFinding(
-                title="Delayed Lead Response Handoff",
-                summary="Leads sit uncontacted for an average of 12+ hours due to manual WhatsApp-to-Excel coordination.",
-                severity="critical",
-            ),
-            DashboardAIFinding(
-                title="Severe Communication Fragmentation",
-                summary="Lead capture, broker status updates, and client communications are scattered across local files.",
-                severity="high",
-            ),
-            DashboardAIFinding(
-                title="High Broker Manual Overhead",
-                summary="Brokers spend up to 18 hours per week manually typing status updates and chasing documents.",
-                severity="medium",
-            ),
-        ],
+        inefficiency_score=100.0 - report.operational_health_score,
+        revenue_leakage_estimate=report.revenue_leakage_amount,
+        time_waste_estimate=report.manual_workload_hours,
+        repeated_task_count=report.bottleneck_count,
+        workflow_fragmentation_score=report.fragmentation_score,
+        automation_potential=report.automation_potential_score,
+        automation_opportunities=automation_opportunities,
+        ai_findings=ai_findings,
     )

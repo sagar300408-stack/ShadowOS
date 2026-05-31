@@ -1,40 +1,73 @@
+from datetime import datetime
+from typing import List
+
+import pandas as pd
+
 from backend.analyzers.base_analyzer import BaseOperationalAnalyzer
-from backend.models.operational_intelligence import IntelligenceSignal, WorkflowRecord
+from backend.models.operational_intelligence import IntelligenceSignal
+from backend.schemas.upload_schema import CanonicalRecord
 
 
 class RevenueLeakageAnalyzer(BaseOperationalAnalyzer):
-    category = "revenue_leakage_opportunities"
+    category = "revenue_leakage"
 
-    def analyze(self, records: list[WorkflowRecord]) -> list[IntelligenceSignal]:
-        leakage_records: list[WorkflowRecord] = []
+    def analyze(self, records: List[CanonicalRecord]) -> List[IntelligenceSignal]:
+        signals = []
+        dropped_records = []
+        neglected_records = []
 
-        for record in records:
-            status = (record.status or "").lower()
-            workflow_name = record.workflow_name.lower()
-            is_revenue_workflow = any(keyword in workflow_name for keyword in ["lead", "deal", "buyer", "site visit", "booking"])
-            has_delay = record.handoff_count >= 3 or record.repeat_count >= 3
-            is_open = status not in {"closed", "completed", "won"}
+        now = pd.Timestamp.utcnow().tz_localize(None)
 
-            if is_revenue_workflow and is_open and has_delay and record.customer_value > 0:
-                leakage_records.append(record)
+        for rec in records:
+            status = str(rec.status).lower() if rec.status else ""
+            value = float(rec.revenue or rec.lead_value or 0.0)
 
-        if not leakage_records:
-            return []
+            # Dropped/Lost Leads
+            if status in ["dropped", "lost", "closed lost", "cancelled"]:
+                if value > 0:
+                    dropped_records.append((rec, value))
+            
+            # Neglected Open Leads (>30 days since last followup)
+            elif status in ["open", "new", "in progress"]:
+                ref_date = rec.last_followup or rec.updated_at or rec.created_at
+                if ref_date and value > 0:
+                    try:
+                        dt = pd.to_datetime(ref_date)
+                        if dt.tzinfo:
+                            dt = dt.tz_convert(None)
+                        
+                        days_neglected = (now - dt).days
+                        if days_neglected > 30:
+                            neglected_records.append((rec, value))
+                    except Exception:
+                        pass
 
-        estimated_leakage = sum(record.customer_value for record in leakage_records) * 0.12
-
-        return [
-            IntelligenceSignal(
-                category=self.category,
-                title="Revenue leakage from delayed revenue workflows",
-                description=(
-                    f"{len(leakage_records)} revenue-linked records show repeated delays, "
-                    "handoffs, or unresolved status."
-                ),
-                severity="critical" if estimated_leakage >= 100000 else "high",
-                score_impact=min(24, len(leakage_records) * 5),
-                evidence=[record.record_id for record in leakage_records[:8]],
-                estimated_revenue_leakage=estimated_leakage,
+        if dropped_records:
+            total_lost = sum(v for _, v in dropped_records)
+            signals.append(
+                IntelligenceSignal(
+                    category=self.category,
+                    title="Direct Revenue Loss",
+                    description=f"Detected {len(dropped_records)} lost/dropped records with identifiable value.",
+                    severity="high",
+                    score_impact=20.0,
+                    estimated_revenue_leakage=total_lost,
+                    evidence=[f"Record ID: {r.record_id} (Value: {v})" for r, v in dropped_records[:3]]
+                )
             )
-        ]
+            
+        if neglected_records:
+            total_at_risk = sum(v for _, v in neglected_records)
+            signals.append(
+                IntelligenceSignal(
+                    category=self.category,
+                    title="Revenue At Risk (Neglected)",
+                    description=f"{len(neglected_records)} high-value records haven't had a follow-up in over 30 days.",
+                    severity="high",
+                    score_impact=15.0,
+                    estimated_revenue_leakage=total_at_risk,
+                    evidence=[f"Record ID: {r.record_id} (Value: {v})" for r, v in neglected_records[:3]]
+                )
+            )
 
+        return signals

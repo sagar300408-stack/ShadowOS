@@ -32,6 +32,7 @@ export type DashboardMetrics = {
   time_waste_estimate: number;
   repeated_task_count: number;
   workflow_fragmentation_score: number;
+  automation_potential: number;
   automation_opportunities: DashboardAutomationOpportunity[];
   ai_findings: DashboardAIFinding[];
 };
@@ -88,6 +89,44 @@ export type WorkflowResponse = {
   }>;
 };
 
+export type ChartDataPoint = {
+  name: string;
+  before: number;
+  after: number;
+  unit: string;
+};
+
+export type ExecutiveImpactReport = {
+  revenue_recovery_estimate: number;
+  manual_work_reduction_percent: number;
+  lead_recovery_conversion_increase: number;
+  automation_opportunities_count: number;
+  workflow_efficiency_increase: number;
+  operational_risk_reduction: number;
+  chart_data: ChartDataPoint[];
+};
+
+export type UnifiedAnalysisResult = {
+  analysis_id: string;
+  upload_id: string;
+  created_at: string;
+  dataset_type: string;
+  confidence_score: number;
+  supported_analyzers: string[];
+  analysis_explanations: string[];
+  
+  primary_finding: {
+    category: string;
+    title: string;
+    description: string;
+    severity: string;
+  };
+  dashboard: DashboardMetrics;
+  workflow: WorkflowResponse;
+  recommendations: WorkflowResponse["automation_recommendations"];
+  executive_impact: ExecutiveImpactReport;
+};
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export async function uploadWorkflowFile(file: File): Promise<UploadResponse> {
@@ -111,8 +150,10 @@ export async function uploadWorkflowFile(file: File): Promise<UploadResponse> {
   return response.json() as Promise<UploadResponse>;
 }
 
-export async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
-  const response = await fetch(`${API_BASE_URL}/dashboard`, {
+export async function fetchUnifiedAnalysis(uploadId: string): Promise<UnifiedAnalysisResult> {
+  const url = `${API_BASE_URL}/analysis/${encodeURIComponent(uploadId)}`;
+
+  const response = await fetch(url, {
     method: "GET",
     headers: {
       Accept: "application/json",
@@ -121,24 +162,12 @@ export async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
   });
 
   if (!response.ok) {
-    throw new Error("Dashboard telemetry is unavailable. Confirm the backend is running.");
+    const errorBody = await response.json().catch(() => null);
+    const message = typeof errorBody?.detail === "string"
+      ? errorBody.detail
+      : "Analysis telemetry is unavailable. Confirm the backend is running.";
+    throw new Error(message);
   }
 
-  return response.json() as Promise<DashboardMetrics>;
-}
-
-export async function fetchWorkflowGraph(): Promise<WorkflowResponse> {
-  const response = await fetch(`${API_BASE_URL}/workflow`, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error("Workflow graph is unavailable. Confirm the backend is running.");
-  }
-
-  return response.json() as Promise<WorkflowResponse>;
+  return response.json() as Promise<UnifiedAnalysisResult>;
 }
