@@ -46,7 +46,7 @@ export function ExecutiveImpact() {
     
     try {
       setIsDownloading(true);
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://shadowos-beta.onrender.com";
       const res = await fetch(`${API_BASE_URL}/analysis/${uploadId}/export`, {
         method: "GET"
       });

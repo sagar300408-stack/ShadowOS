@@ -127,7 +127,7 @@ export type UnifiedAnalysisResult = {
   executive_impact: ExecutiveImpactReport;
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://shadowos-beta.onrender.com";
 
 export async function uploadWorkflowFile(file: File): Promise<UploadResponse> {
   const formData = new FormData();
